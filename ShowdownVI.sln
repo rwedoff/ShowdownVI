@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2017
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShowdownVI.Plugins", "ShowdownVI.Plugins.csproj", "{8D17F70D-C091-F081-7B46-08D3BC235425}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShowdownVI", "ShowdownVI.csproj", "{0BD5A291-87B0-2AFB-B60F-DE1C8BA8527F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShowdownVI.Editor.Plugins", "ShowdownVI.Editor.Plugins.csproj", "{1DA821CD-F463-C135-4378-B36B66DF2E1C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8D17F70D-C091-F081-7B46-08D3BC235425}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D17F70D-C091-F081-7B46-08D3BC235425}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D17F70D-C091-F081-7B46-08D3BC235425}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D17F70D-C091-F081-7B46-08D3BC235425}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0BD5A291-87B0-2AFB-B60F-DE1C8BA8527F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BD5A291-87B0-2AFB-B60F-DE1C8BA8527F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BD5A291-87B0-2AFB-B60F-DE1C8BA8527F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BD5A291-87B0-2AFB-B60F-DE1C8BA8527F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DA821CD-F463-C135-4378-B36B66DF2E1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DA821CD-F463-C135-4378-B36B66DF2E1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DA821CD-F463-C135-4378-B36B66DF2E1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DA821CD-F463-C135-4378-B36B66DF2E1C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
