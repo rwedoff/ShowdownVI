@@ -18,6 +18,8 @@ public class BodySourceView : MonoBehaviour
     public Text pitchText;
     private const double FaceRotationIncrementInDegrees = 0.01;
 
+    private bool leftyMode = false;
+
     public static float pitch = 0;
     public static float yaw = 0;
     public static float roll = 0;
@@ -62,6 +64,13 @@ public class BodySourceView : MonoBehaviour
         { Kinect.JointType.SpineShoulder, Kinect.JointType.Neck },
         { Kinect.JointType.Neck, Kinect.JointType.Head },
     };
+
+    public Toggle leftyToggle;
+
+    private void Start()
+    {
+        
+    }
 
     void Update()
     {
@@ -165,15 +174,22 @@ public class BodySourceView : MonoBehaviour
 
     private void RefreshBodyObject(Kinect.Body body, GameObject bodyObject)
     {
-
-        handPosition = body.Joints[Kinect.JointType.HandTipRight].Position;
+        if (leftyToggle.isOn)
+        {
+            handPosition = body.Joints[Kinect.JointType.HandLeft].Position;
+            wristPosition = body.Joints[Kinect.JointType.HandLeft].Position;
+        }
+        else
+        {
+            handPosition = body.Joints[Kinect.JointType.HandTipRight].Position;
+            wristPosition = body.Joints[Kinect.JointType.HandRight].Position;
+        }
         neckPosition = body.Joints[Kinect.JointType.Neck].Position;
-        wristPosition = body.Joints[Kinect.JointType.HandRight].Position;
         spineMidPosition = body.Joints[Kinect.JointType.SpineMid].Position;
 
-        float h = wristPosition.Z - handPosition.Z;
-        float a = wristPosition.X - handPosition.X;
-        float angle = Mathf.Rad2Deg * Mathf.Atan2(h, a);
+        //float h = wristPosition.Z - handPosition.Z;
+        //float a = wristPosition.X - handPosition.X;
+        //float angle = Mathf.Rad2Deg * Mathf.Atan2(h, a);
 
         //yawText.text = "HAND : " + handPosition.Z;
         //pitchText.text = "WRIST : " + wristPosition.Z;

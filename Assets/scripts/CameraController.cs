@@ -8,26 +8,13 @@ using System;
 
 public class CameraController : MonoBehaviour
 {
-    public Transform target;
     public float smooth = 0.01F;
     private float yVelocity = 0.0F;
     private float xVelocity = 0.0F;
     private float zVelocity = 0.0F;
 
-    void Start()
-    {
-
-
-    }
-
     private void LateUpdate()
     {
-
-
-        float roll = BodySourceView.roll;
-        float yaw = BodySourceView.yaw;
-        float pitch = BodySourceView.pitch;
-
         CameraSpacePoint spine = BodySourceView.spineMidPosition;
 
         transform.position = new Vector3(0, (spine.Y * 100) + 30.16f, transform.position.z);

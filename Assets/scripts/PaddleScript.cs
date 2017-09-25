@@ -22,7 +22,7 @@ public class PaddleScript : MonoBehaviour
     }
 
     // Update is called once per frame
-    void LateUpdate()
+    void FixedUpdate()
     {
 
         //MoveBat(BodySourceView.spineMidPosition, BodySourceView.handPosition);
@@ -32,20 +32,11 @@ public class PaddleScript : MonoBehaviour
         float xPos = (midSpinePosition.X - handPosition.X) * 100,
               zPos = (midSpinePosition.Z - handPosition.Z) * 100;
 
-        //Close the bounds so players don't have to reach as far
-        if (-xPos < 0)
-        {
-            xPos += 10;
-        }
-        else
-        {
-            xPos -= 10;
-        }
-
         //Smooth and set the position of the paddle
-        Vector3 direction = (new Vector3(-xPos, 0, (zPos - 188.5f)) - transform.position).normalized;
-        rb.MovePosition(transform.position + (direction * 75 * Time.deltaTime));
+        //Vector3 direction = (new Vector3(-xPos, 0, (zPos - 188.5f)) - transform.position).normalized;
+        //rb.MovePosition(transform.position + (direction * 75 * Time.deltaTime));
 
+        rb.MovePosition(new Vector3(-xPos, 4.5f, (zPos - 188.5f)));
 
         RotateBat(BodySourceView.wristPosition, BodySourceView.handPosition);
 
@@ -72,15 +63,6 @@ public class PaddleScript : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Calculates the position of the bat in the virtual world
-    /// </summary>
-    /// <param name="midSpinePosition">Distance of the center of the chest from the Kinect</param>
-    /// <param name="handPosition">Distance of the tip of the hand from the Kinect</param>
-    private void MoveBat(CameraSpacePoint midSpinePosition, CameraSpacePoint handPosition)
-    {
-   
-    }
     /// <summary>
     /// Calculates the rotation of the bat in the virtual world
     /// </summary>
