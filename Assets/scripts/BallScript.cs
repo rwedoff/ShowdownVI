@@ -5,19 +5,25 @@ using UnityEngine.UI;
 
 public class BallScript : MonoBehaviour
 {
+    public float inputSpeed;
+
+    public static bool ballStart;
 
     private Rigidbody rb;
-    public float inputSpeed;
     private AudioSource ballSoundSource;
-    
     private AudioSource paddleSound;
+    private AudioSource winSound;
+    private AudioSource lostSound;
     private float maxspeed = 250;
+    private float oldTime;
+    private bool timerStarted;
 
     private void Start()
     {
-
+        ballStart = true;
         rb = GetComponent<Rigidbody>();
-
+        oldTime = 0;
+        timerStarted = false;
         AudioSource[] audioSources = GetComponents<AudioSource>();
         ballSoundSource = audioSources[0];
         paddleSound = audioSources[1];
@@ -39,6 +45,40 @@ public class BallScript : MonoBehaviour
         //Add a speed limit to the ball
         Vector3 oldVel = rb.velocity;
         rb.velocity = Vector3.ClampMagnitude(oldVel, maxspeed);
+        
+        if(rb.velocity.magnitude < 5 && !ballStart)
+        {
+            if (timerStarted)
+            {
+                if(Time.time > oldTime + 2)
+                {
+                    Utils.ResetBall(transform.gameObject, true);
+                    timerStarted = false;
+                    ballStart = true;
+                    
+                    if(transform.position.z > 0)
+                    {
+                        GoalScript.SouthScore++;
+                        GoalScript.PlayWinSound();
+
+                    }
+                    else
+                    {
+                        GoalScript.NorthScore++;
+                        GoalScript.PlayLoseSound();
+                    }
+                }
+            }
+            else
+            {
+                timerStarted = true;
+                oldTime = Time.time;
+            }
+        }
+        else
+        {
+            timerStarted = false;
+        }
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -46,6 +86,7 @@ public class BallScript : MonoBehaviour
         if (collision.gameObject.tag == "Player")
         {
             paddleSound.Play();
+            ballStart = false;
         }
     }
 }

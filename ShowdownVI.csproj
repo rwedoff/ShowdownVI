@@ -89,7 +89,9 @@
   <ItemGroup>
     <Compile Include="Assets\scenes\KinectView\Scripts\BodySourceManager.cs" />
     <Compile Include="Assets\scenes\KinectView\Scripts\BodySourceView.cs" />
+    <Compile Include="Assets\scripts\AIColliderScript.cs" />
     <Compile Include="Assets\scripts\BallScript.cs" />
+    <Compile Include="Assets\scripts\BatAI.cs" />
     <Compile Include="Assets\scripts\CameraController.cs" />
     <Compile Include="Assets\scripts\GoalScript.cs" />
     <Compile Include="Assets\scripts\PaddleScript.cs" />

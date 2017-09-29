@@ -13,6 +13,20 @@ public class Utils
         return (((OldValue - OldMin) * NewRange) / OldRange) + NewMin;
     }
 
+    public static void ResetBall(GameObject ball, bool playerSide)
+    {
+        Rigidbody rb = ball.GetComponent<Rigidbody>();
+        rb.velocity = new Vector3(0, 0, 0);
+        if (playerSide)
+        {
+            rb.MovePosition(new Vector3(0, 3, -120f));
+        }
+        else
+        {
+            rb.MovePosition(new Vector3(0, 3, 120f));
+        }
+    }
+
     ///NOT CURRENTLY USED, COULD COME IN HANDY
 
     /// <summary>

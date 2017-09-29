@@ -15,7 +15,7 @@ public class CameraController : MonoBehaviour
 
     private void LateUpdate()
     {
-        CameraSpacePoint spine = BodySourceView.spineMidPosition;
+        CameraSpacePoint spine = BodySourceView.spindMidPosition;
 
         transform.position = new Vector3(0, (spine.Y * 100) + 30.16f, transform.position.z);
 

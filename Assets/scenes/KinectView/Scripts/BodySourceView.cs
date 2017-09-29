@@ -13,21 +13,16 @@ public class BodySourceView : MonoBehaviour
 
     private Dictionary<ulong, GameObject> _Bodies = new Dictionary<ulong, GameObject>();
     private BodySourceManager _BodyManager;
-    public Text yawText;
-    public Text rollText;
-    public Text pitchText;
+
     private const double FaceRotationIncrementInDegrees = 0.01;
 
     private bool leftyMode = false;
 
-    public static float pitch = 0;
-    public static float yaw = 0;
-    public static float roll = 0;
-
     public static Kinect.CameraSpacePoint handPosition;
     public static Kinect.CameraSpacePoint neckPosition;
     public static Kinect.CameraSpacePoint wristPosition;
-    public static Kinect.CameraSpacePoint spineMidPosition;
+    public static Kinect.CameraSpacePoint waistPosition;
+    public static Kinect.CameraSpacePoint spindMidPosition;
     public static Quaternion handRotation;
 
     public static Quaternion faceRotation;
@@ -176,7 +171,7 @@ public class BodySourceView : MonoBehaviour
     {
         if (leftyToggle.isOn)
         {
-            handPosition = body.Joints[Kinect.JointType.HandLeft].Position;
+            handPosition = body.Joints[Kinect.JointType.HandTipLeft].Position;
             wristPosition = body.Joints[Kinect.JointType.HandLeft].Position;
         }
         else
@@ -185,16 +180,8 @@ public class BodySourceView : MonoBehaviour
             wristPosition = body.Joints[Kinect.JointType.HandRight].Position;
         }
         neckPosition = body.Joints[Kinect.JointType.Neck].Position;
-        spineMidPosition = body.Joints[Kinect.JointType.SpineMid].Position;
-
-        //float h = wristPosition.Z - handPosition.Z;
-        //float a = wristPosition.X - handPosition.X;
-        //float angle = Mathf.Rad2Deg * Mathf.Atan2(h, a);
-
-        //yawText.text = "HAND : " + handPosition.Z;
-        //pitchText.text = "WRIST : " + wristPosition.Z;
-        //rollText.text = "Angle : " + angle;
-
+        waistPosition = body.Joints[Kinect.JointType.SpineBase].Position;
+        spindMidPosition = body.Joints[Kinect.JointType.SpineMid].Position;
 
         //for (Kinect.JointType jt = Kinect.JointType.SpineBase; jt <= Kinect.JointType.ThumbRight; jt++)
         //{
