@@ -5,10 +5,10 @@ using Kinect = Windows.Kinect;
 using UnityEngine.UI;
 using Microsoft.Kinect.Face;
 using System;
+using Windows.Kinect;
 
 public class BodySourceView : MonoBehaviour
 {
-    public Material BoneMaterial;
     public GameObject BodySourceManager;
 
     private Dictionary<ulong, GameObject> _Bodies = new Dictionary<ulong, GameObject>();
@@ -16,13 +16,13 @@ public class BodySourceView : MonoBehaviour
 
     private const double FaceRotationIncrementInDegrees = 0.01;
 
-    private bool leftyMode = false;
+    private bool leftyMode;
+    public Toggle leftyToggle;
 
-    public static Kinect.CameraSpacePoint handPosition;
-    public static Kinect.CameraSpacePoint neckPosition;
-    public static Kinect.CameraSpacePoint wristPosition;
-    public static Kinect.CameraSpacePoint waistPosition;
-    public static Kinect.CameraSpacePoint spindMidPosition;
+    public static CameraSpacePoint handPosition;
+    public static CameraSpacePoint wristPosition;
+    public static CameraSpacePoint baseKinectPosition;
+    public static CameraSpacePoint spineMidPosition;
     public static Quaternion handRotation;
 
     public static Quaternion faceRotation;
@@ -60,12 +60,20 @@ public class BodySourceView : MonoBehaviour
         { Kinect.JointType.Neck, Kinect.JointType.Head },
     };
 
-    public Toggle leftyToggle;
-
-    private void Start()
+    public void Start()
     {
-        
+        if(PlayerPrefs.GetInt("hand") == 0)
+        {
+            leftyMode = false;
+        }
+        else
+        {
+            leftyMode = true;
+        }
+
+        leftyToggle.isOn = leftyToggle;
     }
+
 
     void Update()
     {
@@ -80,7 +88,7 @@ public class BodySourceView : MonoBehaviour
             return;
         }
 
-        Kinect.Body[] data = _BodyManager.GetData();
+        Body[] data = _BodyManager.GetData();
         if (data == null)
         {
             return;
@@ -90,7 +98,6 @@ public class BodySourceView : MonoBehaviour
 
 
         //TODO what happens if there is more than one face?
-        //TODO Static vars?
 
         if (faceData[0] != null)
         {
@@ -149,21 +156,6 @@ public class BodySourceView : MonoBehaviour
     private GameObject CreateBodyObject(ulong id)
     {
         GameObject body = new GameObject("Body:" + id);
-
-        //for (Kinect.JointType jt = Kinect.JointType.SpineBase; jt <= Kinect.JointType.ThumbRight; jt++)
-        //{
-        //    GameObject jointObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
-
-        //    LineRenderer lr = jointObj.AddComponent<LineRenderer>();
-        //    lr.SetVertexCount(2);
-        //    lr.material = BoneMaterial;
-        //    lr.SetWidth(0.05f, 0.05f);
-
-        //    jointObj.transform.localScale = new Vector3(0.3f, 0.3f, 0.3f);
-        //    jointObj.name = jt.ToString();
-        //    jointObj.transform.parent = body.transform;
-        //}
-
         return body;
     }
 
@@ -179,54 +171,24 @@ public class BodySourceView : MonoBehaviour
             handPosition = body.Joints[Kinect.JointType.HandTipRight].Position;
             wristPosition = body.Joints[Kinect.JointType.HandRight].Position;
         }
-        neckPosition = body.Joints[Kinect.JointType.Neck].Position;
-        waistPosition = body.Joints[Kinect.JointType.SpineBase].Position;
-        spindMidPosition = body.Joints[Kinect.JointType.SpineMid].Position;
 
-        //for (Kinect.JointType jt = Kinect.JointType.SpineBase; jt <= Kinect.JointType.ThumbRight; jt++)
-        //{
-        //    Kinect.Joint sourceJoint = body.Joints[jt];
-        //    Kinect.Joint? targetJoint = null;
+        float maxZDistance = 
+            Math.Max(body.Joints[JointType.Head].Position.Z, 
+            Math.Max(body.Joints[JointType.Head].Position.Z, 
+            Math.Max(body.Joints[JointType.Neck].Position.Z, 
+            Math.Max(body.Joints[JointType.SpineMid].Position.Z, 
+            Math.Max(body.Joints[JointType.SpineShoulder].Position.Z, 
+            Math.Max(body.Joints[JointType.HipLeft].Position.Z,
+                body.Joints[JointType.HipRight].Position.Z))))));
 
-        //    if (_BoneMap.ContainsKey(jt))
-        //    {
-        //        targetJoint = body.Joints[_BoneMap[jt]];
-        //    }
-
-        //    Transform jointObj = bodyObject.transform.Find(jt.ToString());
-        //    jointObj.localPosition = GetVector3FromJoint(sourceJoint);
-
-        //    LineRenderer lr = jointObj.GetComponent<LineRenderer>();
-        //    if (targetJoint.HasValue)
-        //    {
-        //        lr.SetPosition(0, jointObj.localPosition);
-        //        lr.SetPosition(1, GetVector3FromJoint(targetJoint.Value));
-        //        lr.SetColors(GetColorForState(sourceJoint.TrackingState), GetColorForState(targetJoint.Value.TrackingState));
-        //    }
-        //    else
-        //    {
-        //        lr.enabled = false;
-        //    }
-        //}
-    }
-
-    private static UnityEngine.Color GetColorForState(Kinect.TrackingState state)
-    {
-        switch (state)
+        baseKinectPosition = new CameraSpacePoint()
         {
-            case Kinect.TrackingState.Tracked:
-                return UnityEngine.Color.green;
+            X = body.Joints[JointType.Head].Position.X,
+            Y = body.Joints[JointType.Head].Position.Y,
+            Z = maxZDistance
+        };
 
-            case Kinect.TrackingState.Inferred:
-                return UnityEngine.Color.red;
+        spineMidPosition = body.Joints[JointType.SpineMid].Position;
 
-            default:
-                return UnityEngine.Color.black;
-        }
-    }
-
-    private static Vector3 GetVector3FromJoint(Kinect.Joint joint)
-    {
-        return new Vector3(joint.Position.X * 10, joint.Position.Y * 10, joint.Position.Z * 10);
     }
 }

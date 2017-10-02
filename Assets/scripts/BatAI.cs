@@ -51,13 +51,13 @@ public class BatAI : MonoBehaviour {
             rb.position = Vector3.MoveTowards(transform.position,
                         ballGameObject.transform.position,
                         aiSpeed * 2.5f * Time.deltaTime);
-
-            if (rb.position.magnitude - 50 <= ballGameObject.transform.position.magnitude)
+            if (rb.position.magnitude <= ballGameObject.transform.position.magnitude)
             {
-                rb.position = Vector3.MoveTowards(transform.position,
-                ballGameObject.transform.position,
-                aiSpeed * 15f * Time.deltaTime);
-
+            
+                Vector3 hitPos = ballGameObject.transform.position;
+                
+                rb.MovePosition(new Vector3(hitPos.x, hitPos.y, hitPos.z - Random.Range(0.5f, 2)));
+            
                 if (rb.position.magnitude - 3 <= ballGameObject.transform.position.magnitude)
                 {
                     GoHitBall = false;

@@ -46,7 +46,7 @@ public class BallScript : MonoBehaviour
         Vector3 oldVel = rb.velocity;
         rb.velocity = Vector3.ClampMagnitude(oldVel, maxspeed);
         
-        if(rb.velocity.magnitude < 5 && !ballStart)
+        if(rb.velocity.magnitude < 8 && !ballStart)
         {
             if (timerStarted)
             {

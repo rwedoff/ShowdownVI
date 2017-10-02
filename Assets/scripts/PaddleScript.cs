@@ -29,7 +29,7 @@ public class PaddleScript : MonoBehaviour
     {
 
         //MoveBat(BodySourceView.spineMidPosition, BodySourceView.handPosition);
-        CameraSpacePoint midSpinePosition = BodySourceView.waistPosition;
+        CameraSpacePoint midSpinePosition = BodySourceView.baseKinectPosition;
         CameraSpacePoint handPosition = BodySourceView.handPosition;
 
         //Calculate the position of the paddle based on the distance from the mid spine join
@@ -38,7 +38,7 @@ public class PaddleScript : MonoBehaviour
 
         //Smooth and set the position of the paddle
         Vector3 direction = (new Vector3(-xPos, 0, (zPos - 188.5f)) - transform.position).normalized;
-        rb.MovePosition(transform.position + (direction * 500 * Time.deltaTime));
+        rb.MovePosition(transform.position + (direction * 400 * Time.deltaTime));
 
         //        rb.MovePosition(new Vector3(-xPos, 4.5f, (zPos - 188.5f)));
 

@@ -1,10 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
 using Windows.Kinect;
-using Microsoft.Kinect.Face;
-using UnityEngine.UI;
-using System;
 
 public class CameraController : MonoBehaviour
 {
@@ -15,7 +10,7 @@ public class CameraController : MonoBehaviour
 
     private void LateUpdate()
     {
-        CameraSpacePoint spine = BodySourceView.spindMidPosition;
+        CameraSpacePoint spine = BodySourceView.spineMidPosition;
 
         transform.position = new Vector3(0, (spine.Y * 100) + 30.16f, transform.position.z);
 
