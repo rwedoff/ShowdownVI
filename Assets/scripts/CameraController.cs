@@ -7,12 +7,24 @@ public class CameraController : MonoBehaviour
     private float yVelocity = 0.0F;
     private float xVelocity = 0.0F;
     private float zVelocity = 0.0F;
+    private float startingZPosition;
+
+    private void Start()
+    {
+        startingZPosition = transform.position.z;
+    }
 
     private void LateUpdate()
     {
-        CameraSpacePoint spine = BodySourceView.spineMidPosition;
+        CameraSpacePoint closestZPosition = BodySourceView.closestZPosition;
+        CameraSpacePoint furtherestZPosition = BodySourceView.baseKinectPosition;
 
-        transform.position = new Vector3(0, (spine.Y * 100) + 30.16f, transform.position.z);
+        float deltaZPosition = (furtherestZPosition.Z - closestZPosition.Z) * 100;
+
+        transform.position = 
+            new Vector3(0, 
+                (closestZPosition.Y * 100) + 30.16f, 
+                (startingZPosition + deltaZPosition));
 
         Quaternion fr = BodySourceView.faceRotation;
         if (fr != null)

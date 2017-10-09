@@ -6,12 +6,9 @@ public class PaddleScript : MonoBehaviour
     private Rigidbody rb;
 
     public float smooth = 0.5F;
-    private float yVelocity = 0.0F;
     private bool batOutofBounds;
 
     private UnityEngine.AudioSource wallCollideAudio;
-
-    public Collider coll;
 
     // Use this for initialization
     void Start()
@@ -20,8 +17,6 @@ public class PaddleScript : MonoBehaviour
         wallCollideAudio = GetComponent<UnityEngine.AudioSource>();
         batOutofBounds = true;
         wallCollideAudio.loop = true;
-
-        coll = GetComponent<Collider>();
     }
 
     // Update is called once per frame
@@ -37,31 +32,18 @@ public class PaddleScript : MonoBehaviour
               zPos = (midSpinePosition.Z - handPosition.Z) * 100;
 
         //Smooth and set the position of the paddle
+        //Smoothing used so paddle won't phase through ball
         Vector3 direction = (new Vector3(-xPos, 0, (zPos - 188.5f)) - transform.position).normalized;
         rb.MovePosition(transform.position + (direction * 400 * Time.deltaTime));
 
-        //        rb.MovePosition(new Vector3(-xPos, 4.5f, (zPos - 188.5f)));
+        //No smoothing
+        //rb.MovePosition(new Vector3(-xPos, 4.5f, (zPos - 188.5f)));
 
         RotateBat(BodySourceView.wristPosition, BodySourceView.handPosition);
 
         CheckBatInGame();
 
-        //RaycastHit hit;
-        //Ray batRay = new Ray(rb.position, transform.forward);
-        ////Debug.Log(transform.forward);
-        //Debug.DrawRay(batRay.origin, batRay.direction * 20);
-        //if(Physics.Raycast(batRay, out hit, 20))
-        //{
-        //    Vector3 oldVel = rb.velocity;
-        //    rb.velocity = Vector3.ClampMagnitude(oldVel, 10);
-        //}
-
-
-
-
     }
-
-
 
     private void CheckBatInGame()
     {

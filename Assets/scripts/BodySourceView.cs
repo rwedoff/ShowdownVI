@@ -22,42 +22,43 @@ public class BodySourceView : MonoBehaviour
     public static CameraSpacePoint handPosition;
     public static CameraSpacePoint wristPosition;
     public static CameraSpacePoint baseKinectPosition;
-    public static CameraSpacePoint spineMidPosition;
-    public static Quaternion handRotation;
+    //public static CameraSpacePoint spineMidPosition;
+    public static CameraSpacePoint closestZPosition;
+    public static CameraSpacePoint oppositeHand;
 
     public static Quaternion faceRotation;
 
 
-    private Dictionary<Kinect.JointType, Kinect.JointType> _BoneMap = new Dictionary<Kinect.JointType, Kinect.JointType>()
+    private Dictionary<JointType, JointType> _BoneMap = new Dictionary<JointType, JointType>()
     {
-        { Kinect.JointType.FootLeft, Kinect.JointType.AnkleLeft },
-        { Kinect.JointType.AnkleLeft, Kinect.JointType.KneeLeft },
-        { Kinect.JointType.KneeLeft, Kinect.JointType.HipLeft },
-        { Kinect.JointType.HipLeft, Kinect.JointType.SpineBase },
+        { JointType.FootLeft, JointType.AnkleLeft },
+        { JointType.AnkleLeft, JointType.KneeLeft },
+        { JointType.KneeLeft, JointType.HipLeft },
+        { JointType.HipLeft, JointType.SpineBase },
 
-        { Kinect.JointType.FootRight, Kinect.JointType.AnkleRight },
-        { Kinect.JointType.AnkleRight, Kinect.JointType.KneeRight },
-        { Kinect.JointType.KneeRight, Kinect.JointType.HipRight },
-        { Kinect.JointType.HipRight, Kinect.JointType.SpineBase },
+        { JointType.FootRight, JointType.AnkleRight },
+        { JointType.AnkleRight, JointType.KneeRight },
+        { JointType.KneeRight, JointType.HipRight },
+        { JointType.HipRight, JointType.SpineBase },
 
-        { Kinect.JointType.HandTipLeft, Kinect.JointType.HandLeft },
-        { Kinect.JointType.ThumbLeft, Kinect.JointType.HandLeft },
-        { Kinect.JointType.HandLeft, Kinect.JointType.WristLeft },
-        { Kinect.JointType.WristLeft, Kinect.JointType.ElbowLeft },
-        { Kinect.JointType.ElbowLeft, Kinect.JointType.ShoulderLeft },
-        { Kinect.JointType.ShoulderLeft, Kinect.JointType.SpineShoulder },
+        { JointType.HandTipLeft, JointType.HandLeft },
+        { JointType.ThumbLeft, JointType.HandLeft },
+        { JointType.HandLeft, JointType.WristLeft },
+        { JointType.WristLeft, JointType.ElbowLeft },
+        { JointType.ElbowLeft, JointType.ShoulderLeft },
+        { JointType.ShoulderLeft, JointType.SpineShoulder },
 
-        { Kinect.JointType.HandTipRight, Kinect.JointType.HandRight },
-        { Kinect.JointType.ThumbRight, Kinect.JointType.HandRight },
-        { Kinect.JointType.HandRight, Kinect.JointType.WristRight },
-        { Kinect.JointType.WristRight, Kinect.JointType.ElbowRight },
-        { Kinect.JointType.ElbowRight, Kinect.JointType.ShoulderRight },
-        { Kinect.JointType.ShoulderRight, Kinect.JointType.SpineShoulder },
+        { JointType.HandTipRight, JointType.HandRight },
+        { JointType.ThumbRight, JointType.HandRight },
+        { JointType.HandRight, JointType.WristRight },
+        { JointType.WristRight, JointType.ElbowRight },
+        { JointType.ElbowRight, JointType.ShoulderRight },
+        { JointType.ShoulderRight, JointType.SpineShoulder },
 
-        { Kinect.JointType.SpineBase, Kinect.JointType.SpineMid },
-        { Kinect.JointType.SpineMid, Kinect.JointType.SpineShoulder },
-        { Kinect.JointType.SpineShoulder, Kinect.JointType.Neck },
-        { Kinect.JointType.Neck, Kinect.JointType.Head },
+        { JointType.SpineBase, JointType.SpineMid },
+        { JointType.SpineMid, JointType.SpineShoulder },
+        { JointType.SpineShoulder, JointType.Neck },
+        { JointType.Neck, JointType.Head },
     };
 
     public void Start()
@@ -71,7 +72,7 @@ public class BodySourceView : MonoBehaviour
             leftyMode = true;
         }
 
-        leftyToggle.isOn = leftyToggle;
+        leftyToggle.isOn = leftyMode;
     }
 
 
@@ -159,17 +160,19 @@ public class BodySourceView : MonoBehaviour
         return body;
     }
 
-    private void RefreshBodyObject(Kinect.Body body, GameObject bodyObject)
+    private void RefreshBodyObject(Body body, GameObject bodyObject)
     {
         if (leftyToggle.isOn)
         {
-            handPosition = body.Joints[Kinect.JointType.HandTipLeft].Position;
-            wristPosition = body.Joints[Kinect.JointType.HandLeft].Position;
+            handPosition = body.Joints[JointType.HandTipLeft].Position;
+            oppositeHand = body.Joints[JointType.HandRight].Position;
+            wristPosition = body.Joints[JointType.HandLeft].Position;
         }
         else
         {
-            handPosition = body.Joints[Kinect.JointType.HandTipRight].Position;
-            wristPosition = body.Joints[Kinect.JointType.HandRight].Position;
+            handPosition = body.Joints[JointType.HandTipRight].Position;
+            oppositeHand = body.Joints[JointType.HandLeft].Position;
+            wristPosition = body.Joints[JointType.HandRight].Position;
         }
 
         float maxZDistance = 
@@ -181,6 +184,12 @@ public class BodySourceView : MonoBehaviour
             Math.Max(body.Joints[JointType.HipLeft].Position.Z,
                 body.Joints[JointType.HipRight].Position.Z))))));
 
+        float minZDistance =
+            Math.Min(body.Joints[JointType.Head].Position.Z,
+            Math.Min(body.Joints[JointType.Head].Position.Z,
+            Math.Min(body.Joints[JointType.Neck].Position.Z,
+                body.Joints[JointType.SpineShoulder].Position.Z)));
+
         baseKinectPosition = new CameraSpacePoint()
         {
             X = body.Joints[JointType.Head].Position.X,
@@ -188,7 +197,11 @@ public class BodySourceView : MonoBehaviour
             Z = maxZDistance
         };
 
-        spineMidPosition = body.Joints[JointType.SpineMid].Position;
-
+        closestZPosition = new CameraSpacePoint()
+        {
+            X = body.Joints[JointType.Head].Position.X,
+            Y = body.Joints[JointType.SpineMid].Position.Y,
+            Z = minZDistance
+        };
     }
 }

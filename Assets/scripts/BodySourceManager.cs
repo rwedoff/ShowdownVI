@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using Windows.Kinect;
 using Microsoft.Kinect.Face;
 using System.Collections.Generic;

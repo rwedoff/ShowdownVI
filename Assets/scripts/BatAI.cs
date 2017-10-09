@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class BatAI : MonoBehaviour {
     //Speed at which the AI moves
@@ -8,16 +10,35 @@ public class BatAI : MonoBehaviour {
 
     private Rigidbody rb;
     private bool ballHit;
+    private bool batHome;
 
     void Start () {
         rb = GetComponent<Rigidbody>();
         aiSpeed = 75;
         ballHit = false;
         GoHitBall = false;
+        batHome = true;
     }
 
     // Update is called once per frame
     void Update () {
+
+
+
+        //if (BallScript.ballStart && !batHome)
+        //{
+        //    rb.MovePosition(new Vector3(0, 4.5f, 150));
+        //    batHome = true;
+        //    Debug.Log("HERE");
+        //    StartCoroutine(PauseGameTemp());
+        //}
+
+        //if (BallScript.ballStart && !GameUtils.playerServe)
+        //{
+        //    Debug.Log("WAIT");
+            
+        //}
+
         if (ballHit)
         {
             if (!AIColliderScript.easyMode)
@@ -44,6 +65,14 @@ public class BatAI : MonoBehaviour {
         }
     }
 
+    private IEnumerator PauseGameTemp()
+    {
+        Debug.Log("Before wait");
+        yield return new WaitForSeconds(3);
+        HitBall(GameObject.FindGameObjectWithTag("Ball"));
+        Debug.Log("after wait");
+    }
+
     private void HitBall(GameObject ballGameObject)
     {
         if(!ballHit)
@@ -53,16 +82,11 @@ public class BatAI : MonoBehaviour {
                         aiSpeed * 2.5f * Time.deltaTime);
             if (rb.position.magnitude <= ballGameObject.transform.position.magnitude)
             {
-            
+                rb.MoveRotation(Quaternion.Euler(new Vector3(0, ballGameObject.transform.position.x, 0)));
                 Vector3 hitPos = ballGameObject.transform.position;
-                
-                rb.MovePosition(new Vector3(hitPos.x, hitPos.y, hitPos.z - Random.Range(0.5f, 2)));
-            
-                if (rb.position.magnitude - 3 <= ballGameObject.transform.position.magnitude)
-                {
-                    GoHitBall = false;
-                    ballHit = true;
-                }
+                rb.MovePosition(new Vector3(hitPos.x, hitPos.y, hitPos.z - Random.Range(0.5f, 1.5f)));
+                GoHitBall = false;
+                ballHit = true;
             }
         }
         else
@@ -70,7 +94,7 @@ public class BatAI : MonoBehaviour {
             ballHit = true;
             aiSpeed = 0.5f;
         }
-
+        batHome = false;
     }
 
 }

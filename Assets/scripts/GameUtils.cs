@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Utils
+public class GameUtils
 {
     private const double FaceRotationIncrementInDegrees = 1.0;
+    private static int playerSide = 0;
+    public static bool playerServe = true;
 
     public static float Scale(float OldMin, float OldMax, float NewMin, float NewMax, float OldValue)
     {
@@ -13,16 +15,19 @@ public class Utils
         return (((OldValue - OldMin) * NewRange) / OldRange) + NewMin;
     }
 
-    public static void ResetBall(GameObject ball, bool playerSide)
+    public static void ResetBall(GameObject ball)
     {
+        playerSide++;
         Rigidbody rb = ball.GetComponent<Rigidbody>();
         rb.velocity = new Vector3(0, 0, 0);
-        if (playerSide)
+        if (playerSide % 4 < 2)
         {
+            playerServe = true;
             rb.MovePosition(new Vector3(0, 3, -120f));
         }
         else
         {
+            playerServe = false;
             rb.MovePosition(new Vector3(0, 3, 120f));
         }
     }

@@ -16,11 +16,14 @@ public class AIColliderScript : MonoBehaviour {
         timerStarted = false;
         oldTime = 0;
 
-        levelDropDown.onValueChanged.AddListener(delegate {
-            OnMyValueChange(levelDropDown);
-        });
-
-        levelDropDown.value = PlayerPrefs.GetInt("diff");
+        if (levelDropDown != null)
+        {
+            levelDropDown.onValueChanged.AddListener(delegate
+            {
+                OnMyValueChange(levelDropDown);
+            });
+            levelDropDown.value = PlayerPrefs.GetInt("diff");
+        }
     }
 
     private void OnMyValueChange(Dropdown dropDown)

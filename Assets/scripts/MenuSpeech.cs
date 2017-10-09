@@ -11,19 +11,21 @@ public class MenuSpeech : MonoBehaviour
     public Text menuText;
 
     private KeywordRecognizer keywordRecognizer;
-    private Dictionary<string, Action> keywords = new Dictionary<string, Action>();
+    private Dictionary<string, Action> keywords;
     private AudioSource[] audioSources;
     private AudioSource currentAudioSource;
+    private static bool alreadyFilled = true;
+
+    private AudioSource currentHelpAudio;
+    private IEnumerator<AudioSource> audioEnumberable;
 
     private float oldTime;
-    private bool timerStarted;
-
 
     private string mainTextString = "Welcome to Virtual Showdown! \n Say \"Help\", \"Single Player\", or \"Settings\"";
 
     public enum MenuState
     {
-        Main, Settings, Hand, Difficulty, InPlay
+        Main, Settings, Hand, Difficulty, InPlay, Tutorial
     }
     public MenuState menuState;
 
@@ -41,28 +43,46 @@ public class MenuSpeech : MonoBehaviour
         audioSources = GetComponentsInChildren<AudioSource>();
 
         oldTime = 0;
-        timerStarted = true;
-
+        keywords = new Dictionary<string, Action>();
         FillKeyWords();
+
         keywordRecognizer = new KeywordRecognizer(keywords.Keys.ToArray());
         keywordRecognizer.OnPhraseRecognized += KeywordRecognizer_OnPhraseRecognized;
         keywordRecognizer.Start();
 
-        currentAudioSource = audioSources[7];
-        audioSources[7].Play();
+        //NOTE, must set current Audio Source. Currently not a problem
+        if(menuState == MenuState.Main)
+        {
+            currentAudioSource = audioSources[7];
+            currentAudioSource.Play();
+        }
+        else if(menuState == MenuState.Tutorial)
+        {
+            currentAudioSource = audioSources[0];
+            currentAudioSource.Play();
+        }
     }
 
     private void Update()
     {
-        //if (timerStarted)
-        //{
-            //If ball is still in zone after 20 seconds then hit
-            if (Time.time > oldTime + 20)
+        if (menuState != MenuState.Tutorial && menuState != MenuState.InPlay)
+        {
+            if(currentAudioSource == null)
             {
-                Debug.Log("Repeat");
-                currentAudioSource.Play();
+                currentAudioSource = audioSources[7];
             }
-        //}
+            //If ball is still in zone after 15 seconds then hit
+            if (Time.time > oldTime + 15)
+            {
+                currentAudioSource.Play();
+                oldTime = Time.time;
+            }
+        }
+
+        if(menuState == MenuState.Tutorial)
+        {
+            StartBallTutorial();
+        }
     }
 
     private void ChangeDifficultyMenu()
@@ -112,85 +132,87 @@ public class MenuSpeech : MonoBehaviour
 
     private void FillKeyWords()
     {
-        //Create keywords for keyword recognizer
-        keywords.Add("Help", () =>
-        {
-            if (menuState == MenuState.Main)
+            //Create keywords for keyword recognizer
+            keywords.Add("Help", () =>
             {
-                StartTutorial();
-            }
-        });
-        keywords.Add("Single Player", () =>
-        {
-            if (menuState == MenuState.Main)
+                if (menuState == MenuState.Main)
+                {
+                    StartTutorial();
+                }
+            });
+            keywords.Add("Single Player", () =>
             {
-                StartSinglePlayer();
-            }
-        });
-        keywords.Add("Settings", () => {
-            if (menuState == MenuState.Main)
+                if (menuState == MenuState.Main)
+                {
+                    StartSinglePlayer();
+                }
+            });
+            keywords.Add("Settings", () =>
             {
-                StartSettings();
-            }
-        });
-        keywords.Add("Change Hand", () => {
-            if (menuState == MenuState.Settings)
+                if (menuState == MenuState.Main)
+                {
+                    StartSettings();
+                }
+            });
+            keywords.Add("Change Hand", () =>
             {
-                ChangeHand();
-            }
-        });
-        keywords.Add("Change Difficulty", () =>
-        {
-            if (menuState == MenuState.Settings)
+                if (menuState == MenuState.Settings)
+                {
+                    ChangeHand();
+                }
+            });
+            keywords.Add("Change Difficulty", () =>
             {
-                ChangeDifficultyMenu();
-            }
-        });
-        keywords.Add("Left", () =>
-        {
-            if(menuState == MenuState.Hand)
-                ChangeHandToLeft();
-        });
-        keywords.Add("Right", () =>
-        {
-            if (menuState == MenuState.Hand)
-                ChangeHandToRight();
-        });
-        keywords.Add("Easy", () =>
-        {
-            if (menuState == MenuState.Difficulty)
-                ChangeDifficulty(0);
-        });
-        keywords.Add("Medium", () =>
-        {
-            if (menuState == MenuState.Difficulty)
-                ChangeDifficulty(1);
-        });
-        keywords.Add("Hard", () =>
-        {
-            if (menuState == MenuState.Difficulty)
-                ChangeDifficulty(2);
-        });
-        keywords.Add("Main Menu", () =>
-        {
-            ReturnToMain();
-        });
-        keywords.Add("Play Game", () =>
-        {
-            if(menuState == MenuState.InPlay)
+                if (menuState == MenuState.Settings)
+                {
+                    ChangeDifficultyMenu();
+                }
+            });
+            keywords.Add("Left", () =>
             {
-                Time.timeScale = 1;
-                AudioListener.pause = false;
-            }
-        });
-        keywords.Add("Pause Game", () =>
-        {
-            if(menuState == MenuState.InPlay)
+                if (menuState == MenuState.Hand)
+                    ChangeHandToLeft();
+            });
+            keywords.Add("Right", () =>
             {
-                AudioListener.pause = true;
-                Time.timeScale = 0;
-            }
-        });
+                if (menuState == MenuState.Hand)
+                    ChangeHandToRight();
+            });
+            keywords.Add("Easy", () =>
+            {
+                if (menuState == MenuState.Difficulty)
+                    ChangeDifficulty(0);
+            });
+            keywords.Add("Medium", () =>
+            {
+                if (menuState == MenuState.Difficulty)
+                    ChangeDifficulty(1);
+            });
+            keywords.Add("Hard", () =>
+            {
+                if (menuState == MenuState.Difficulty)
+                    ChangeDifficulty(2);
+            });
+            keywords.Add("Main Menu", () =>
+            {
+                ReturnToMain();
+            });
+            keywords.Add("Play Game", () =>
+            {
+                if (menuState == MenuState.InPlay)
+                {
+                    Time.timeScale = 1;
+                    AudioListener.pause = false;
+                }
+            });
+            keywords.Add("Pause Game", () =>
+            {
+                if (menuState == MenuState.InPlay)
+                {
+                    AudioListener.pause = true;
+                    Time.timeScale = 0;
+                }
+            });
     }
 
     private void ChangeDifficulty(int diff)
@@ -240,5 +262,14 @@ public class MenuSpeech : MonoBehaviour
         PlayerPrefs.SetInt("hand", 1);
         currentAudioSource = audioSources[3];
         menuText.text = "Your hand is set to Left. \n Say \"Main Menu\" to go back.";
+    }
+
+    private void StartBallTutorial()
+    {
+        if (!currentAudioSource.isPlaying)
+        {
+            //Trigger ball tutorial code
+            BallScript.tutorialMode = true;
+        }
     }
 }
