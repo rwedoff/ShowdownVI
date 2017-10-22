@@ -7,6 +7,7 @@ public class AIColliderScript : MonoBehaviour {
     private int missHitRate;
     private float oldTime;
     private bool timerStarted;
+    private bool serveTimeStarted;
 
     private void Start()
     {
@@ -49,11 +50,11 @@ public class AIColliderScript : MonoBehaviour {
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.tag == "Ball")
+        if(other.tag == "Ball" && !BallScript.ballStart)
         {
             if (Random.Range(0, missHitRate) > 2)
             {
-                BatAI.GoHitBall = true;
+                BatAI.GoHitBall();
             }
             timerStarted = true;
             oldTime = Time.time;
@@ -72,15 +73,45 @@ public class AIColliderScript : MonoBehaviour {
     {
         if(other.tag == "Ball")
         {
-            if (timerStarted)
+            if (timerStarted && !BallScript.ballStart)
             {
                 //If ball is still in zone after 2 seconds then hit
-                if (Time.time > oldTime + 2)
+                if (Time.time > oldTime + 5)
                 {
-                    BatAI.GoHitBall = true;
+                    Debug.Log("Waited too long");
+                    BatAI.GoHitBall();
                     timerStarted = false;
                 }
             }
+            else if (BallScript.ballStart)
+            {
+                //Initate serve
+                StartServe();
+            }
+            else
+            {
+                timerStarted = true;
+                oldTime = Time.time;
+            }
+        }
+    }
+
+    private void StartServe()
+    {
+        if (serveTimeStarted)
+        {
+            Debug.Log("Should start serving");
+            if(Time.time > oldTime + 5)
+            {
+                Debug.Log("Served!");
+                BatAI.GoHitBall();
+                serveTimeStarted = false;
+            }
+        }
+        else
+        {
+            serveTimeStarted = true;
+            oldTime = Time.time;
         }
     }
 }

@@ -11,23 +11,40 @@ public class MenuSpeech : MonoBehaviour
     public Text menuText;
 
     private KeywordRecognizer keywordRecognizer;
-    private Dictionary<string, Action> keywords;
+    private Dictionary<string, Action> keywords = new Dictionary<string, Action>();
     private AudioSource[] audioSources;
     private AudioSource currentAudioSource;
-    private static bool alreadyFilled = true;
 
     private AudioSource currentHelpAudio;
     private IEnumerator<AudioSource> audioEnumberable;
 
     private float oldTime;
 
-    private string mainTextString = "Welcome to Virtual Showdown! \n Say \"Help\", \"Single Player\", or \"Settings\"";
+    //private string mainTextString = "Welcome to Virtual Showdown! \n Say \"Help\", \"Single Player\", or \"Settings\"";
 
     public enum MenuState
     {
         Main, Settings, Hand, Difficulty, InPlay, Tutorial
     }
     public MenuState menuState;
+
+    private void Awake()
+    {
+        if(keywords.Keys.ToArray().Count() == 0)
+        {
+            
+        }
+            FillKeyWords();
+        if (keywordRecognizer == null || !keywordRecognizer.IsRunning)
+        {
+            if(keywordRecognizer != null)
+                Debug.Log(keywordRecognizer.Keywords.Count());
+            keywordRecognizer = new KeywordRecognizer(keywords.Keys.ToArray());
+            keywordRecognizer.OnPhraseRecognized += KeywordRecognizer_OnPhraseRecognized;
+            keywordRecognizer.Start();
+        }
+        Debug.Log("Started");
+    }
 
     private void Start()
     {
@@ -43,12 +60,6 @@ public class MenuSpeech : MonoBehaviour
         audioSources = GetComponentsInChildren<AudioSource>();
 
         oldTime = 0;
-        keywords = new Dictionary<string, Action>();
-        FillKeyWords();
-
-        keywordRecognizer = new KeywordRecognizer(keywords.Keys.ToArray());
-        keywordRecognizer.OnPhraseRecognized += KeywordRecognizer_OnPhraseRecognized;
-        keywordRecognizer.Start();
 
         //NOTE, must set current Audio Source. Currently not a problem
         if(menuState == MenuState.Main)
@@ -60,6 +71,17 @@ public class MenuSpeech : MonoBehaviour
         {
             currentAudioSource = audioSources[0];
             currentAudioSource.Play();
+            //TODO DEBUG ONLY SET TO 1
+            Time.timeScale = 1;
+        }
+    }
+
+    void OnDestroy()
+    {
+        if (keywordRecognizer != null)
+        {
+            keywordRecognizer.Stop();
+            keywordRecognizer.Dispose();
         }
     }
 
@@ -67,10 +89,10 @@ public class MenuSpeech : MonoBehaviour
     {
         if (menuState != MenuState.Tutorial && menuState != MenuState.InPlay)
         {
-            if(currentAudioSource == null)
-            {
-                currentAudioSource = audioSources[7];
-            }
+            //if(currentAudioSource == null)
+            //{
+            //    currentAudioSource = audioSources[7];
+            //}
             //If ball is still in zone after 15 seconds then hit
             if (Time.time > oldTime + 15)
             {
@@ -121,6 +143,7 @@ public class MenuSpeech : MonoBehaviour
 
     private void KeywordRecognizer_OnPhraseRecognized(PhraseRecognizedEventArgs args)
     {
+        Debug.Log("Heard!");
         Action keywordAction;
         // if the keyword recognized is in our dictionary, call that Action.
         if (keywords.TryGetValue(args.text, out keywordAction))
@@ -199,19 +222,13 @@ public class MenuSpeech : MonoBehaviour
             });
             keywords.Add("Play Game", () =>
             {
-                if (menuState == MenuState.InPlay)
-                {
                     Time.timeScale = 1;
                     AudioListener.pause = false;
-                }
             });
             keywords.Add("Pause Game", () =>
             {
-                if (menuState == MenuState.InPlay)
-                {
                     AudioListener.pause = true;
                     Time.timeScale = 0;
-                }
             });
     }
 
@@ -242,10 +259,9 @@ public class MenuSpeech : MonoBehaviour
 
     private void ReturnToMain()
     {
-        menuText.text = mainTextString;
-        audioSources[7].Play();
+        SceneManager.LoadScene("Main");
         menuState = MenuState.Main;
-        currentAudioSource = audioSources[7];
+        //menuText.text = mainTextString;
     }
 
     private void ChangeHandToRight()
@@ -266,10 +282,12 @@ public class MenuSpeech : MonoBehaviour
 
     private void StartBallTutorial()
     {
+        //Trigger ball tutorial code
+        BallScript.tutorialMode = true;
         if (!currentAudioSource.isPlaying)
         {
-            //Trigger ball tutorial code
-            BallScript.tutorialMode = true;
+            //TODO????????
+            Time.timeScale = 1;
         }
     }
 }

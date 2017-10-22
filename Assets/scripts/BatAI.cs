@@ -5,7 +5,7 @@ using UnityEngine;
 public class BatAI : MonoBehaviour {
     //Speed at which the AI moves
     public float aiSpeed;
-    public static bool GoHitBall;
+    public static bool goHitBallBool;
     public GameObject ball;
 
     private Rigidbody rb;
@@ -16,7 +16,7 @@ public class BatAI : MonoBehaviour {
         rb = GetComponent<Rigidbody>();
         aiSpeed = 75;
         ballHit = false;
-        GoHitBall = false;
+        goHitBallBool = false;
         batHome = true;
     }
 
@@ -58,7 +58,7 @@ public class BatAI : MonoBehaviour {
         }
         else
         {
-            if (GoHitBall)
+            if (goHitBallBool)
             {
                 HitBall(ball);
             }
@@ -85,7 +85,7 @@ public class BatAI : MonoBehaviour {
                 rb.MoveRotation(Quaternion.Euler(new Vector3(0, ballGameObject.transform.position.x, 0)));
                 Vector3 hitPos = ballGameObject.transform.position;
                 rb.MovePosition(new Vector3(hitPos.x, hitPos.y, hitPos.z - Random.Range(0.5f, 1.5f)));
-                GoHitBall = false;
+                goHitBallBool = false;
                 ballHit = true;
             }
         }
@@ -95,6 +95,11 @@ public class BatAI : MonoBehaviour {
             aiSpeed = 0.5f;
         }
         batHome = false;
+    }
+
+    public static void GoHitBall()
+    {
+        goHitBallBool = true;
     }
 
 }

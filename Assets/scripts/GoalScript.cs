@@ -6,8 +6,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GoalScript : MonoBehaviour {
-    public Text southScoreText;
-    public Text northScoreText;
+    public Text scoreText;
     public static int PlayerScore;
     public static int OpponentScore;
     public static bool gameOver;
@@ -21,7 +20,6 @@ public class GoalScript : MonoBehaviour {
     private static AudioSource tiedAudio;
     private static AudioSource playerWins;
     private static AudioSource opponentWins;
-    private static Dictionary<int, AudioSource> scoreAudioMap;
 
     private void Start()
     {
@@ -30,40 +28,19 @@ public class GoalScript : MonoBehaviour {
         AudioSource[] audioSources = transform.parent.GetComponents<AudioSource>();
         winPointAudio = audioSources[0];
         losePointAudio = audioSources[1];
-        theScoreIsAudio = audioSources[14];
-        toScoreAudio = audioSources[15];
-        playerUpAudio = audioSources[16];
-        opponentUpAudio = audioSources[17];
-        tiedAudio = audioSources[18];
-        playerWins = audioSources[19];
-        opponentWins = audioSources[20];
+        theScoreIsAudio = audioSources[2];
+        toScoreAudio = audioSources[3];
+        playerUpAudio = audioSources[4];
+        opponentUpAudio = audioSources[5];
+        tiedAudio = audioSources[6];
+        playerWins = audioSources[7];
+        opponentWins = audioSources[8];
         gameOver = false;
-
-        FillAudioMap(audioSources);
-    }
-
-    private void FillAudioMap(AudioSource[] a)
-    {
-        scoreAudioMap = new Dictionary<int, AudioSource>();
-        scoreAudioMap.Add(0, a[2]);
-        scoreAudioMap.Add(1, a[3]);
-        scoreAudioMap.Add(2, a[4]);
-        scoreAudioMap.Add(3, a[5]);
-        scoreAudioMap.Add(4, a[6]);
-        scoreAudioMap.Add(5, a[7]);
-        scoreAudioMap.Add(6, a[8]);
-        scoreAudioMap.Add(7, a[9]);
-        scoreAudioMap.Add(8, a[10]);
-        scoreAudioMap.Add(9, a[11]);
-        scoreAudioMap.Add(10, a[12]);
-        scoreAudioMap.Add(11, a[13]);
-        
     }
 
     private void Update()
     {
-        northScoreText.text = "North Score: " + OpponentScore;
-        southScoreText.text = "South Score: " + PlayerScore;
+        scoreText.text = "Player " + PlayerScore + " - " + OpponentScore + " Opponent";
     }
 
     void OnTriggerEnter(Collider other)
@@ -72,7 +49,6 @@ public class GoalScript : MonoBehaviour {
             if (gameObject.tag == "SouthGoal")
             {
                 OpponentScore += 2;
-                northScoreText.text = "North Score: " + OpponentScore;
                 PlayLoseSound();
                 BallScript.ballStart = true;
 
@@ -80,11 +56,11 @@ public class GoalScript : MonoBehaviour {
             else if (gameObject.tag == "NorthGoal")
             {
                 PlayerScore += 2;
-                southScoreText.text = "South Score: " + PlayerScore;
                 PlayWinSound();
                 BallScript.ballStart = true;
             }
             GameUtils.ResetBall(other.gameObject);
+            scoreText.text = "Player " + PlayerScore + " - " + OpponentScore + " Opponent";
             StartCoroutine(ReadScore());
         }
     }
@@ -96,7 +72,7 @@ public class GoalScript : MonoBehaviour {
             gameOver = true;
             playerWins.Play();
             yield return new WaitForSeconds(playerWins.clip.length - 1f);
-            SceneManager.LoadSceneAsync("Main");
+            SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
         }
         else if(OpponentScore >= 11 && PlayerScore <= 10)
         {
@@ -104,7 +80,7 @@ public class GoalScript : MonoBehaviour {
             opponentWins.Play();
             yield return new WaitForSeconds(opponentWins.clip.length - 1f);
             //Destroy(GetComponent<MenuSpeech>());
-            SceneManager.LoadSceneAsync("Main");
+            SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
         }
         else if (PlayerScore >= 11 && OpponentScore >= 11)
         {
@@ -125,11 +101,14 @@ public class GoalScript : MonoBehaviour {
         {
             theScoreIsAudio.Play();
             yield return new WaitForSeconds(theScoreIsAudio.clip.length - 0.7f);
-            scoreAudioMap[PlayerScore].Play();
-            yield return new WaitForSeconds(scoreAudioMap[PlayerScore].clip.length -0.5f);
+            AudioSource audioScore = null;
+            if (PlayerScore <= 11)
+                audioScore = NumberSpeech.PlayAudio(PlayerScore);
+            yield return new WaitForSeconds(audioScore.clip.length -0.5f);
             toScoreAudio.Play();
             yield return new WaitForSeconds(toScoreAudio.clip.length - 0.7f);
-            scoreAudioMap[OpponentScore].Play();
+            if (OpponentScore <= 11)
+                NumberSpeech.PlayAudio(OpponentScore);
         }
     }
 

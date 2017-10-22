@@ -11,7 +11,6 @@ public class BodySourceManager : MonoBehaviour
     private FaceFrameResult[] _FaceData;
     private FaceFrameSource[] faceFrameSources = null;
     private FaceFrameReader[] faceFrameReaders = null;
-    private FaceFrameResult[] faceFrameResults = null;
 
     public Body[] GetData()
     {

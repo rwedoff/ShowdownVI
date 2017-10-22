@@ -18,7 +18,6 @@ public class BallScript : MonoBehaviour
     private float oldTime;
     private bool timerStarted;
     private bool debugMode = true;
-    private GoalScript gs;
 
     private void Start()
     {
@@ -30,7 +29,6 @@ public class BallScript : MonoBehaviour
         ballSoundSource = audioSources[0];
         paddleSound = audioSources[1];
         outofTableSound = audioSources[2];
-        gs = GetComponent<GoalScript>();
 
         //DEBUG ONLY
         tutorialMode = false;
@@ -53,16 +51,7 @@ public class BallScript : MonoBehaviour
         Vector3 oldVel = rb.velocity;
         rb.velocity = Vector3.ClampMagnitude(oldVel, maxspeed);
 
-        if (tutorialMode)
-        {
-            BallTutorial();
-        }
-        else
-        {
-            //Toggle Ball Speed Points
-            BallSpeedPoints();
-        }
-
+        BallSpeedPoints();
         BallServe();
 
         CheckBallInGame();
@@ -124,6 +113,7 @@ public class BallScript : MonoBehaviour
 
     private void BallSpeedPoints()
     {
+        //Debug.Log(ballStart);
         if (rb.velocity.magnitude < 8 && !ballStart)
         {
             if (timerStarted)
@@ -163,8 +153,13 @@ public class BallScript : MonoBehaviour
     {
         if (collision.gameObject.tag == "Player" || collision.gameObject.tag == "oppo")
         {
+            Debug.Log("HERE");
             paddleSound.Play();
             ballStart = false;
+        }
+        if(collision.gameObject.tag == "Player")
+        {
+            PhoneServer.SendMessageToPhone("ball;");
         }
     }
 

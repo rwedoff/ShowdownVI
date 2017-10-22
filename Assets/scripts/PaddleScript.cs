@@ -51,8 +51,8 @@ public class PaddleScript : MonoBehaviour
         if ((transform.position.x > 60 || transform.position.x < -50 || transform.position.z < -175))
         {
             batOutofBounds = true;
+            PhoneServer.SendMessageToPhone("wall;");
         }
-
         if (!batOutofBounds && wallCollideAudio.isPlaying)
         {
             wallCollideAudio.Pause();
