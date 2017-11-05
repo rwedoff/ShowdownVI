@@ -24,7 +24,7 @@ public class BodySourceView : MonoBehaviour
     public static CameraSpacePoint baseKinectPosition;
     //public static CameraSpacePoint spineMidPosition;
     public static CameraSpacePoint closestZPosition;
-    public static CameraSpacePoint oppositeHand;
+    public static CameraSpacePoint shoulderPosition;
 
     public static Quaternion faceRotation;
 
@@ -129,16 +129,16 @@ public class BodySourceView : MonoBehaviour
 
     private void RefreshBodyObject(Body body, GameObject bodyObject)
     {
-        if (leftyToggle.isOn)
+        if (leftyToggle.isOn) //Left handed
         {
             handPosition = body.Joints[JointType.HandTipLeft].Position;
-            oppositeHand = body.Joints[JointType.HandRight].Position;
             wristPosition = body.Joints[JointType.HandLeft].Position;
+            shoulderPosition = body.Joints[JointType.ShoulderLeft].Position;
         }
         else
         {
             handPosition = body.Joints[JointType.HandTipRight].Position;
-            oppositeHand = body.Joints[JointType.HandLeft].Position;
+            shoulderPosition = body.Joints[JointType.ShoulderRight].Position;
             wristPosition = body.Joints[JointType.HandRight].Position;
         }
 

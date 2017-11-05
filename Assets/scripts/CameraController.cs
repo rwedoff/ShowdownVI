@@ -14,7 +14,7 @@ public class CameraController : MonoBehaviour
         startingZPosition = transform.position.z;
     }
 
-    private void LateUpdate()
+    private void FixedUpdate()
     {
         CameraSpacePoint closestZPosition = BodySourceView.closestZPosition;
         CameraSpacePoint furtherestZPosition = BodySourceView.baseKinectPosition;
@@ -24,7 +24,7 @@ public class CameraController : MonoBehaviour
         transform.position = 
             new Vector3(0, 
                 (closestZPosition.Y * 100) + 30.16f, 
-                (startingZPosition + deltaZPosition));
+                (startingZPosition + deltaZPosition) + 20f);
 
         Quaternion fr = BodySourceView.faceRotation;
         if (fr != null)

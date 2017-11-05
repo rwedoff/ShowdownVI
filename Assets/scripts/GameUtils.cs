@@ -6,7 +6,13 @@ public class GameUtils
 {
     private const double FaceRotationIncrementInDegrees = 1.0;
     private static int playerSide = 0;
-    public static bool playerServe = true;
+    public static bool PlayerServe = true;
+
+    public enum GamePlayState
+    {
+        InPlay, SettingBall, BallSet
+    }
+    public static GamePlayState playState;
 
     public static float Scale(float OldMin, float OldMax, float NewMin, float NewMax, float OldValue)
     {
@@ -22,13 +28,13 @@ public class GameUtils
         rb.velocity = new Vector3(0, 0, 0);
         if (playerSide % 4 < 2)
         {
-            playerServe = true;
-            rb.MovePosition(new Vector3(0, 3, -120f));
+            PlayerServe = true;
+            rb.MovePosition(new Vector3(0, 3, -100f));
         }
         else
         {
-            playerServe = false;
-            rb.MovePosition(new Vector3(0, 3, 120f));
+            PlayerServe = false;
+            rb.MovePosition(new Vector3(0, 3, 100f));
         }
     }
 

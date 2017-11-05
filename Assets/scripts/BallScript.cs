@@ -1,60 +1,78 @@
 ﻿using System;
+using System.Collections;
 using UnityEngine;
 
 public class BallScript : MonoBehaviour
 {
     public float inputSpeed;
-
-    public static bool ballStart;
-    public static bool tutorialMode;
-
     private Rigidbody rb;
-    private AudioSource ballSoundSource;
+    private static AudioSource ballSoundSource;
     private AudioSource paddleSound;
     private AudioSource winSound;
     private AudioSource lostSound;
     private AudioSource outofTableSound;
+    private AudioSource wallAudioSource;
     private float maxspeed = 250;
     private float oldTime;
     private bool timerStarted;
     private bool debugMode = true;
+    private GameObject bat;
+    private bool aiSettingBall = false;
 
     private void Start()
     {
-        ballStart = true;
         rb = GetComponent<Rigidbody>();
         oldTime = 0;
         timerStarted = false;
         AudioSource[] audioSources = GetComponents<AudioSource>();
+        bat = GameObject.FindGameObjectWithTag("Player");
         ballSoundSource = audioSources[0];
         paddleSound = audioSources[1];
         outofTableSound = audioSources[2];
-
-        //DEBUG ONLY
-        tutorialMode = false;
+        wallAudioSource = audioSources[3];
     }
 
     //Used for physics
     private void FixedUpdate()
     {
+        //DEBUG ONLY
+
         //Manual Keyboard Control of Ball
         float movehorizontal = Input.GetAxis("Horizontal");
         float movevertical = Input.GetAxis("Vertical");
         Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
         rb.AddForce(movement * inputSpeed);
 
-        //Change rolling sounds based on speed of ball
-        ballSoundSource.volume = GameUtils.Scale(0, maxspeed, 0, 1, Math.Abs(rb.velocity.magnitude));
-        ballSoundSource.pitch = GameUtils.Scale(0, maxspeed, 0.5f, 1.25f, Math.Abs(rb.velocity.magnitude));
+        //END DEBUG
 
-        //Add a speed limit to the ball
-        Vector3 oldVel = rb.velocity;
-        rb.velocity = Vector3.ClampMagnitude(oldVel, maxspeed);
+        //Check ball state
+        if (PhoneServer.Init)
+        {
+            return;
+        }
+        else if(GameUtils.playState == GameUtils.GamePlayState.SettingBall)
+        {
+            SettingBall();
+        }
+        else if(GameUtils.playState == GameUtils.GamePlayState.InPlay)
+        {
+            StartBallSound();
+            //Change rolling sounds based on speed of ball
+            //ballSoundSource.volume = GameUtils.Scale(0, maxspeed, 0, 1, Math.Abs(rb.velocity.magnitude));
+            ballSoundSource.pitch = GameUtils.Scale(0, maxspeed, 0.25f, 1f, Math.Abs(rb.velocity.magnitude));
 
-        BallSpeedPoints();
-        BallServe();
+            //Add a speed limit to the ball
+            Vector3 oldVel = rb.velocity;
+            rb.velocity = Vector3.ClampMagnitude(oldVel, maxspeed);
 
-        CheckBallInGame();
+            BallSpeedPoints();
+
+            CheckBallInGame();
+        }
+        else if(GameUtils.playState == GameUtils.GamePlayState.BallSet)
+        {
+            BallSet();
+        }
 
         if (GoalScript.gameOver)
         {
@@ -63,58 +81,90 @@ public class BallScript : MonoBehaviour
         }
     }
 
+    public void BallSet()
+    {
+        ballSoundSource.pitch = 0.35f;
+        StartBallSound();
+    }
+
+    public void SettingBall()
+    {
+        ballSoundSource.Pause();
+        SetBall();
+    }
+
     private void CheckBallInGame()
     {
-        if(rb.position.x < -61 || rb.position.x > 61 || rb.position.z < -175 || rb.position.z > 175)
+        if(rb.position.x < -51 || rb.position.x > 51 || rb.position.z < -130 || rb.position.z > 130)
         {
             outofTableSound.Play();
             //RESET SERVE
-            ballStart = true;
-            ResetBallPosition();
+            GameUtils.playState = GameUtils.GamePlayState.SettingBall;
+            rb.isKinematic = true;
+            SetBallForServe();
         }
     }
 
-    private void BallServe()
+    private void SetBall()
     {
-        if (!debugMode)
+        if (GameUtils.PlayerServe && GameUtils.playState == GameUtils.GamePlayState.SettingBall)
         {
-            if (BodySourceView.oppositeHand.Z == 0 && GameUtils.playerServe && ballStart)
-            {
-                ResetBallPosition();
-            }
-            else if (GameUtils.playerServe && ballStart)
-            {
-                Windows.Kinect.CameraSpacePoint serveHand = BodySourceView.oppositeHand;
-                Windows.Kinect.CameraSpacePoint midSpinePosition = BodySourceView.baseKinectPosition;
-
-                //Calculate the position of the paddle based on the distance from the mid spine join
-                float xPos = (midSpinePosition.X - serveHand.X) * 100,
-                      zPos = (midSpinePosition.Z - serveHand.Z) * 100;
-
-                //Smooth and set the position of the paddle
-                //Smoothing used so paddle won't phase through ball
-                Vector3 direction = (new Vector3(-xPos, 0, (zPos - 188.5f)) - transform.position).normalized;
-                rb.MovePosition(transform.position + (direction * 400 * Time.deltaTime));
-            }
+            SetBallForServe();
+        }
+        else if (!GameUtils.PlayerServe && GameUtils.playState == GameUtils.GamePlayState.SettingBall)
+        {
+            SetBallForAIServe();
         }
     }
 
-    private void ResetBallPosition()
+    private void SetBallForAIServe()
     {
-        if (GameUtils.playerServe && ballStart)
+        if (!aiSettingBall)
         {
-            rb.MovePosition(new Vector3(0, transform.position.y, -120));
+            StartCoroutine(PauseSettingForScoreAudio());
         }
-        else
+    }
+
+    //Sets the position of the ball
+    private void SetBallForServe()
+    {
+        var paddlePos = bat.transform.position;
+        if (PaddleScript.ScreenPressDown)
         {
-            rb.MovePosition(new Vector3(0, transform.position.y, 120));
+            GameUtils.playState = GameUtils.GamePlayState.BallSet;
+            StartCoroutine(PauseForBallSetAudio(new Vector3(paddlePos.x, transform.position.y, paddlePos.z + 10)));
         }
+        else //Still thinking where to place ball
+        {
+            rb.MovePosition(new Vector3(paddlePos.x, transform.position.y, paddlePos.z + 10));
+            GameUtils.playState = GameUtils.GamePlayState.SettingBall;
+            rb.isKinematic = true;
+        }
+    }
+
+    private IEnumerator PauseSettingForScoreAudio()
+    {
+        aiSettingBall = true;
+        rb.velocity = new Vector3(0, 0, 0);
+        yield return new WaitForSeconds(5);
+        GameUtils.playState = GameUtils.GamePlayState.BallSet;
+        StartCoroutine(PauseForBallSetAudio(new Vector3(0, transform.position.y, 100)));
+    }
+
+    private IEnumerator PauseForBallSetAudio(Vector3 ballPos)
+    {
+        rb.velocity = new Vector3(0, 0, 0);
+        rb.position = ballPos;
+        AudioSource setAudioSource = NumberSpeech.PlayAudio(16);
+        yield return new WaitForSeconds(setAudioSource.clip.length - 0.5f); //Give 1 second to move the bat way bc of jitters
+        GameUtils.playState = GameUtils.GamePlayState.InPlay;
+        aiSettingBall = false;
+        rb.isKinematic = false;
     }
 
     private void BallSpeedPoints()
     {
-        //Debug.Log(ballStart);
-        if (rb.velocity.magnitude < 8 && !ballStart)
+        if (rb.velocity.magnitude < 8 && GameUtils.playState == GameUtils.GamePlayState.InPlay)
         {
             if (timerStarted)
             {
@@ -122,8 +172,8 @@ public class BallScript : MonoBehaviour
                 {
                     GameUtils.ResetBall(transform.gameObject);
                     timerStarted = false;
-                    ballStart = true;
-
+                    GameUtils.playState = GameUtils.GamePlayState.SettingBall;
+                    rb.isKinematic = true;
                     if (transform.position.z > 0)
                     {
                         GoalScript.PlayerScore++;
@@ -151,21 +201,31 @@ public class BallScript : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.tag == "Player" || collision.gameObject.tag == "oppo")
+        if ((collision.gameObject.tag == "Player" || collision.gameObject.tag == "oppo") && GameUtils.playState == GameUtils.GamePlayState.BallSet)
         {
-            Debug.Log("HERE");
             paddleSound.Play();
-            ballStart = false;
+            GameUtils.playState = GameUtils.GamePlayState.InPlay;
+            rb.isKinematic = false;
         }
-        if(collision.gameObject.tag == "Player")
+        if(collision.gameObject.tag == "Player"  || collision.gameObject.tag == "oppo" && GameUtils.playState != GameUtils.GamePlayState.SettingBall)
         {
-            PhoneServer.SendMessageToPhone("ball;");
+            paddleSound.Play();
+            if(collision.gameObject.tag == "Player")
+            {
+                PhoneServer.SendMessageToPhone("ball;");
+            }
+        }
+        if(collision.gameObject.tag == "Wall" && !wallAudioSource.isPlaying)
+        {
+            wallAudioSource.Play();
         }
     }
 
-    private void BallTutorial()
+    private static void StartBallSound()
     {
-        //TODO remove point system in tutoiral mode.
-
+        if (!ballSoundSource.isPlaying)
+        {
+            ballSoundSource.Play();
+        }
     }
 }

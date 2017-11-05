@@ -9,6 +9,7 @@ using System.Collections;
 public class PhoneServer : MonoBehaviour
 {
     private Thread mThread;
+    private Thread updThread;
     private TcpListener server;
     private static TcpClient client;
     private static NetworkStream stream;
@@ -17,7 +18,8 @@ public class PhoneServer : MonoBehaviour
     private System.Object thisLock = new System.Object();
     private bool wasConnected;
     private AudioSource beginAudio;
-    private bool init;
+    public static bool Init;
+    private Socket updSocket;
 
 #region Unity Code
     private void Start()
@@ -25,30 +27,38 @@ public class PhoneServer : MonoBehaviour
         isConnected = false;
         wasConnected = false;
         beginAudio = GetComponent<AudioSource>();
-        init = true;
-        //Time.timeScale = 0;
+        Init = true;
     }
 
     private void Update()
     {
-        if (init && !beginAudio.isPlaying)
+        if (Init && !beginAudio.isPlaying)
         {
-            init = false;
+            //DEBUG ONLY
+            //Time.timeScale = 0;
+            //Init = false;
+            Init = true;
+            Time.timeScale = 1;
+
             SetIPAddress();
             ThreadStart ts = new ThreadStart(ServerUpdate);
             mThread = new Thread(ts);
             mThread.Start();
+            ThreadStart updThreadStart = new ThreadStart(SendAutoConnect);
+            updThread = new Thread(updThreadStart);
+            updThread.Start();
+            Init = false;
         }
 
         if (!wasConnected && isConnected)
         {
-            NumberSpeech.PlayAudio(13);
+            NumberSpeech.PlayAudio(14);
             wasConnected = true;
             Time.timeScale = 1;
         }
         if(wasConnected && !isConnected)
         {
-            NumberSpeech.PlayAudio(14);
+            NumberSpeech.PlayAudio(15);
             wasConnected = false;
             Time.timeScale = 0;
         }
@@ -67,17 +77,38 @@ public class PhoneServer : MonoBehaviour
 
     void OnApplicationQuit()
     {
-        if (server != null)
-        {
+        try { 
             server.Stop();
             if(client != null)
                 client.Close();
             mThread.Abort();
+            updThread.Abort();
+            updSocket.Close();
         }
+        catch { }
     }
-#endregion
+    #endregion
 
-#region Server Code, alt Thread
+    #region Udp Server, alt Thread
+    private void SendAutoConnect()
+    {
+        updSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+
+        IPAddress broadcast = IPAddress.Parse("192.168.1.255");
+        string sendString = ipAddress.ToString() + ";" + Environment.MachineName;
+        byte[] sendbuf = Encoding.ASCII.GetBytes(sendString);
+        IPEndPoint ep = new IPEndPoint(broadcast, 11000);
+        while (!isConnected)
+        {
+            updSocket.SendTo(sendbuf, ep);
+            Debug.Log("Message sent to the broadcast address");
+            Thread.Sleep(2000);
+        }
+        updSocket.Close();
+    }
+    #endregion
+
+    #region Server Code, alt Thread
     private void SetIPAddress()
     {
         IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
@@ -95,7 +126,7 @@ public class PhoneServer : MonoBehaviour
             throw new Exception("No Available Ip Address");
         }
 
-        SpeakIPAddress();
+        //SpeakIPAddress();
     }
 
     private void SpeakIPAddress()
@@ -108,7 +139,7 @@ public class PhoneServer : MonoBehaviour
             int res;
             if (ch == '.')
             {
-                StartCoroutine(PlayGlobalAudio(10, counter++));
+                StartCoroutine(PlayGlobalAudio(12, counter++));
             }
             else if (int.TryParse(ch.ToString(), out res))
             {
@@ -135,6 +166,7 @@ public class PhoneServer : MonoBehaviour
             // Set the TcpListener on port 3333.
             Int32 port = 3333;
             server = new TcpListener(ipAddress, port);
+            Debug.Log(ipAddress);
 
             // Start listening for client requests.
             server.Start();
@@ -160,6 +192,7 @@ public class PhoneServer : MonoBehaviour
                     lock (thisLock)
                     {
                         isConnected = true;
+                        //Time.timeScale = 1;
                     }
                 }
 
@@ -170,12 +203,21 @@ public class PhoneServer : MonoBehaviour
                 while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
                 {
                     dataString = Encoding.ASCII.GetString(bytes, 0, i);
-                    Debug.Log("Received:"+ dataString +"data");
+                    //Debug.Log("Received:"+ dataString +"data");
+                    if (dataString.Equals("up;"))
+                    {
+                        PaddleScript.ScreenPressDown = true;
+                    }
+                    else if (dataString.Equals("down;"))
+                    {
+                        PaddleScript.ScreenPressDown = false;
+                    }
                 }
                 if (!client.Connected)
                 {
                     Debug.Log("Disconnected");
                     isConnected = false;
+                    //Time.timeScale = 0;
                 }
             }
         }
@@ -205,6 +247,7 @@ public class PhoneServer : MonoBehaviour
         {
             Debug.Log("Not connected");
             isConnected = false;
+            //Time.timeScale = 0;
         }
     }
 #endregion

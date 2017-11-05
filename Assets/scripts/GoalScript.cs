@@ -45,19 +45,19 @@ public class GoalScript : MonoBehaviour {
 
     void OnTriggerEnter(Collider other)
     {
-        if(other.tag == "Ball") {
+        if(other.tag == "Ball" && GameUtils.playState == GameUtils.GamePlayState.InPlay) {
             if (gameObject.tag == "SouthGoal")
             {
                 OpponentScore += 2;
                 PlayLoseSound();
-                BallScript.ballStart = true;
+                GameUtils.playState = GameUtils.GamePlayState.SettingBall;
 
             }
             else if (gameObject.tag == "NorthGoal")
             {
                 PlayerScore += 2;
                 PlayWinSound();
-                BallScript.ballStart = true;
+                GameUtils.playState = GameUtils.GamePlayState.SettingBall;
             }
             GameUtils.ResetBall(other.gameObject);
             scoreText.text = "Player " + PlayerScore + " - " + OpponentScore + " Opponent";
@@ -107,8 +107,20 @@ public class GoalScript : MonoBehaviour {
             yield return new WaitForSeconds(audioScore.clip.length -0.5f);
             toScoreAudio.Play();
             yield return new WaitForSeconds(toScoreAudio.clip.length - 0.7f);
+            AudioSource oppoScore = null;
             if (OpponentScore <= 11)
-                NumberSpeech.PlayAudio(OpponentScore);
+                oppoScore = NumberSpeech.PlayAudio(OpponentScore);
+            yield return new WaitForSeconds(oppoScore.clip.length - 0.7f);
+            if (GameUtils.PlayerServe)
+            {
+                AudioSource t = NumberSpeech.PlayAudio(17);
+                yield return new WaitForSeconds(t.clip.length - 0.7f);
+            }
+            else
+            {
+                AudioSource t = NumberSpeech.PlayAudio(18);
+                yield return new WaitForSeconds(t.clip.length - 0.7f);
+            }
         }
     }
 

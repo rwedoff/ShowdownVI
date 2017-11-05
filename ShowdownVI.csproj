@@ -102,7 +102,6 @@
     <Compile Include="Assets\scripts\PaddleScript.cs" />
     <Compile Include="Assets\scripts\PhoneServer.cs" />
     <Compile Include="Assets\scripts\SpeechScript.cs" />
-    <Compile Include="Assets\scripts\WallScript.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Plugins\x86_64\NuiDatabase\Expression\NuiExpressionModelManifest.txt" />

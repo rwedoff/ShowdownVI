@@ -72,7 +72,7 @@ public class MenuSpeech : MonoBehaviour
             currentAudioSource = audioSources[0];
             currentAudioSource.Play();
             //TODO DEBUG ONLY SET TO 1
-            Time.timeScale = 1;
+            Time.timeScale = 0;
         }
     }
 
@@ -283,10 +283,11 @@ public class MenuSpeech : MonoBehaviour
     private void StartBallTutorial()
     {
         //Trigger ball tutorial code
-        BallScript.tutorialMode = true;
+
         if (!currentAudioSource.isPlaying)
         {
-            //TODO????????
+            //Play connect to server audio
+            GetComponents<AudioSource>()[1].Play();
             Time.timeScale = 1;
         }
     }
