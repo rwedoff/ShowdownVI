@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class BallScript : MonoBehaviour
+public class NetworkBall : NetworkBehaviour
 {
     public float inputSpeed;
     private Rigidbody rb;
@@ -35,34 +36,35 @@ public class BallScript : MonoBehaviour
     //Used for physics
     private void FixedUpdate()
     {
+        if (!isServer)
+        {
+            return;
+        }
+
         //DEBUG ONLY
 
         //Manual Keyboard Control of Ball
-        float movehorizontal = Input.GetAxis("Horizontal");
-        float movevertical = Input.GetAxis("Vertical");
-        Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
-        rb.AddForce(movement * inputSpeed);
+        //float movehorizontal = Input.GetAxis("Horizontal");
+        //float movevertical = Input.GetAxis("Vertical");
+        //Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
+        //rb.AddForce(movement * inputSpeed);
 
         //END DEBUG
 
         //Check ball state
         if (PhoneServer.Init)
         {
-            //DEBUG
-            GameUtils.playState = GameUtils.GamePlayState.InPlay;
-            //END DEBUG
             return;
         }
-        else if(GameUtils.playState == GameUtils.GamePlayState.SettingBall)
+        else if (GameUtils.playState == GameUtils.GamePlayState.SettingBall)
         {
             SettingBall();
         }
-        else if(GameUtils.playState == GameUtils.GamePlayState.InPlay)
+        else if (GameUtils.playState == GameUtils.GamePlayState.InPlay)
         {
             StartBallSound();
             //Change rolling sounds based on speed of ball
             //ballSoundSource.volume = GameUtils.Scale(0, maxspeed, 0, 1, Math.Abs(rb.velocity.magnitude));
-            
             ballSoundSource.pitch = GameUtils.Scale(0, maxspeed, 0.25f, 1f, Math.Abs(rb.velocity.magnitude));
 
             //Add a speed limit to the ball
@@ -70,11 +72,11 @@ public class BallScript : MonoBehaviour
             rb.velocity = Vector3.ClampMagnitude(oldVel, maxspeed);
 
             //DEBUG ONLY uncomment this
-            BallSpeedPoints();
+            //BallSpeedPoints();
 
             CheckBallInGame();
         }
-        else if(GameUtils.playState == GameUtils.GamePlayState.BallSet)
+        else if (GameUtils.playState == GameUtils.GamePlayState.BallSet)
         {
             BallSet();
         }
@@ -100,7 +102,7 @@ public class BallScript : MonoBehaviour
 
     private void CheckBallInGame()
     {
-        if(rb.position.x < -51 || rb.position.x > 51 || rb.position.z < -130 || rb.position.z > 130)
+        if (rb.position.x < -51 || rb.position.x > 51 || rb.position.z < -130 || rb.position.z > 130)
         {
             outofTableSound.Play();
             //RESET SERVE
@@ -206,29 +208,39 @@ public class BallScript : MonoBehaviour
             timerStarted = false;
         }
     }
-
+    
     private void OnCollisionEnter(Collision collision)
     {
+
+
         if ((collision.gameObject.tag == "Player" || collision.gameObject.tag == "oppo") && GameUtils.playState == GameUtils.GamePlayState.BallSet)
         {
             paddleSound.Play();
             GameUtils.playState = GameUtils.GamePlayState.InPlay;
             rb.isKinematic = false;
         }
-        if(collision.gameObject.tag == "Player"  || collision.gameObject.tag == "oppo" && GameUtils.playState != GameUtils.GamePlayState.SettingBall)
+        if (collision.gameObject.tag == "Player" || collision.gameObject.tag == "oppo" && GameUtils.playState != GameUtils.GamePlayState.SettingBall)
         {
             paddleSound.Play();
-            if(collision.gameObject.tag == "Player")
+            if (collision.gameObject.tag == "Player")
             {
                 PhoneServer.SendMessageToPhone("ball;");
             }
+
+            var inverseBatSpeed = Mathf.Min(Mathf.Max(Math.Abs(collision.rigidbody.velocity.magnitude), rb.velocity.magnitude), 100);
+
+            Vector3 direction = -collision.transform.rotation.eulerAngles;
+            Vector3 ballVector = rb.velocity;
+            Vector3 resVector = ballVector + direction;
+            
+            //rb.AddForce(new Vector3(100,0,100), ForceMode.VelocityChange);
+
         }
-        if(collision.gameObject.tag == "Wall" && !wallAudioSource.isPlaying)
+        if (collision.gameObject.tag == "Wall" && !wallAudioSource.isPlaying)
         {
             wallAudioSource.Play();
         }
     }
-
     private static void StartBallSound()
     {
         if (!ballSoundSource.isPlaying)

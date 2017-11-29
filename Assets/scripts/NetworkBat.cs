@@ -1,33 +1,46 @@
 ﻿using System;
 using UnityEngine;
 using Windows.Kinect;
+using UnityEngine.Networking;
 
-public class PaddleScript : MonoBehaviour
+public class NetworkBat : NetworkBehaviour
 {
     private Rigidbody rb;
 
     private bool batOutofBounds;
 
     private UnityEngine.AudioSource wallCollideAudio;
-    private UnityEngine.AudioSource batDroneAudio;
 
     public static bool ScreenPressDown { get; internal set; }
     private float oldTime;
     private float timerInterval;
 
+    [SyncVar]
+    float batVel;
+
     // Use this for initialization
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        wallCollideAudio = GetComponents<UnityEngine.AudioSource>()[0];
-        batDroneAudio = GetComponents<UnityEngine.AudioSource>()[1];
+        wallCollideAudio = GetComponent<UnityEngine.AudioSource>();
         batOutofBounds = true;
         wallCollideAudio.loop = true;
+    }
+
+    public override void OnStartLocalPlayer()
+    {
+        GetComponent<MeshRenderer>().material.color = Color.green;
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
+        
+        if (!isLocalPlayer)
+        {
+            return;
+        }
+
         if (PhoneServer.Init)
         {
             //DEBUG ONLY
@@ -44,7 +57,7 @@ public class PaddleScript : MonoBehaviour
         CameraSpacePoint sholderPos = BodySourceView.shoulderPosition;
 
         //Calculate the position of the paddle based on the distance from the mid spine join
-        float xPos = (sholderPos.X - handPosition.X) * 100,
+        float xPos = (midSpinePosition.X - handPosition.X) * 100,
               zPos = (midSpinePosition.Z - handPosition.Z) * 100;
         float yPos = transform.position.y;
         if (ScreenPressDown)
@@ -60,23 +73,32 @@ public class PaddleScript : MonoBehaviour
         //Smoothing used so paddle won't phase through ball
         //Vector3 direction = (new Vector3(-xPos, yPos, (zPos - 142f)) - transform.position).normalized;
         //rb.MovePosition(transform.position + (direction * 200 * Time.deltaTime));
-
-
         //DEBUG ONLY
         float movehorizontal = Input.GetAxis("Horizontal");
         float movevertical = Input.GetAxis("Vertical");
         Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
         rb.MovePosition(transform.position + movement * Time.deltaTime * 300);
 
+        batVel = rb.velocity.magnitude;
         //No smoothing
         //rb.MovePosition(new Vector3(-xPos, 4.5f, (zPos - 188.5f)));
 
-        RotateBat(BodySourceView.wristPosition, BodySourceView.handPosition);
+        //RotateBat(BodySourceView.wristPosition, BodySourceView.handPosition);
+        rb.MoveRotation(Quaternion.Euler(0, 45, 0));
 
         CheckBatInGame();
-        Debug.Log(rb.velocity.magnitude);
-        batDroneAudio.pitch = GameUtils.Scale(0, 300, 0.5f, 1f, Math.Abs(rb.velocity.magnitude));
 
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if(collision.gameObject.tag == "Ball")
+        {
+            Rigidbody ballRb = collision.gameObject.GetComponent<Rigidbody>();
+            Debug.Log(-collision.impulse);
+            ballRb.velocity = new Vector3(100,0,100);
+            Debug.Log(ballRb.velocity);
+        }
     }
 
     private void CheckBatInGame()
@@ -86,13 +108,13 @@ public class PaddleScript : MonoBehaviour
         if ((transform.position.x > 50 || transform.position.x < -50 || transform.position.z < -145))
         {
             float outOfBoundsBy = 0;
-            if(Math.Abs(transform.position.x) > 50)
+            if (Math.Abs(transform.position.x) > 50)
             {
                 outOfBoundsBy = Math.Abs(transform.position.x) - 50;
             }
-            else if(transform.position.z < -145)
+            else if (transform.position.z < -145)
             {
-                outOfBoundsBy = Math.Abs(transform.position.z) -145;
+                outOfBoundsBy = Math.Abs(transform.position.z) - 145;
             }
 
             if (outOfBoundsBy < 10)
@@ -103,7 +125,7 @@ public class PaddleScript : MonoBehaviour
             {
                 timerInterval = 0.2f;
             }
-            else if(outOfBoundsBy < 50 )
+            else if (outOfBoundsBy < 50)
             {
                 timerInterval = 0.15f;
             }
@@ -113,7 +135,7 @@ public class PaddleScript : MonoBehaviour
             }
             batOutofBounds = true;
 
-            if(Time.time > oldTime + timerInterval)
+            if (Time.time > oldTime + timerInterval)
             {
                 PhoneServer.SendMessageToPhone("wall;");
                 oldTime = Time.time;
@@ -129,6 +151,7 @@ public class PaddleScript : MonoBehaviour
             wallCollideAudio.Play();
         }
     }
+
 
     /// <summary>
     /// Calculates the rotation of the bat in the virtual world

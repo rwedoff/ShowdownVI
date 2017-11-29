@@ -13,13 +13,11 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile>
-    </CompilerResponseFile>
+    <CompilerResponseFile></CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows64:19</UnityBuildTarget>
     <UnityVersion>2017.1.1f1</UnityVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <LangVersion>4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -91,6 +89,8 @@
   <ItemGroup>
     <Compile Include="Assets\scripts\AIColliderScript.cs" />
     <Compile Include="Assets\scripts\BallScript.cs" />
+    <Compile Include="Assets\scripts\BallScriptTwoTone.cs" />
+    <Compile Include="Assets\scripts\BallSpawner.cs" />
     <Compile Include="Assets\scripts\BatAI.cs" />
     <Compile Include="Assets\scripts\BodySourceManager.cs" />
     <Compile Include="Assets\scripts\BodySourceView.cs" />
@@ -98,9 +98,12 @@
     <Compile Include="Assets\scripts\GameUtils.cs" />
     <Compile Include="Assets\scripts\GoalScript.cs" />
     <Compile Include="Assets\scripts\MenuSpeech.cs" />
+    <Compile Include="Assets\scripts\NetworkBall.cs" />
+    <Compile Include="Assets\scripts\NetworkBat.cs" />
     <Compile Include="Assets\scripts\NumberSpeech.cs" />
     <Compile Include="Assets\scripts\PaddleScript.cs" />
     <Compile Include="Assets\scripts\PhoneServer.cs" />
+    <Compile Include="Assets\scripts\ServerBat.cs" />
     <Compile Include="Assets\scripts\SpeechScript.cs" />
   </ItemGroup>
   <ItemGroup>

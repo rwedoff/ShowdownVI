@@ -29,9 +29,7 @@ public class BatAI : MonoBehaviour {
         rb = GetComponent<Rigidbody>();
         settingBallTriggered = false;
         batAIState = BatAIState.hittingBall;
-        //DEBUG?
         GameUtils.playState = GameUtils.GamePlayState.SettingBall;
-        //hitPosition = GameObject.FindGameObjectWithTag("Ball").transform.position;
         oppoGoalTransform = GameObject.FindGameObjectWithTag("SouthGoal").transform;
 
     }
@@ -46,9 +44,6 @@ public class BatAI : MonoBehaviour {
         else if (GameUtils.playState == GameUtils.GamePlayState.BallSet)
         {
             hitPosition = hitPosition = GameObject.FindGameObjectWithTag("Ball").transform.position;
-            //GameUtils.playState = GameUtils.GamePlayState.InPlay;
-            //AIColliderScript.ballInZone = true;
-            //batAIState = BatAIState.atHome;
         }
         else if (GameUtils.playState == GameUtils.GamePlayState.InPlay)
         {
@@ -72,28 +67,24 @@ public class BatAI : MonoBehaviour {
 
     private void GoHome()
     {
-        rb.position = Vector3.MoveTowards(transform.position, new Vector3(0, 4.5f, 128f), aiSpeed / 1.2f * Time.deltaTime);
+        if(AIColliderScript.difficulty == 0)
+        {
+            rb.position = Vector3.MoveTowards(transform.position, new Vector3(0, 4.5f, 128f), aiSpeed / 1.5f * Time.deltaTime);
+        }
+        else if(AIColliderScript.difficulty == 1)
+        {
+            rb.position = Vector3.MoveTowards(transform.position, new Vector3(0, 4.5f, 128f), aiSpeed / 1.2f * Time.deltaTime);
+        }
+        else
+        {
+            rb.position = Vector3.MoveTowards(transform.position, new Vector3(0, 4.5f, 128f), aiSpeed * 1.5f * Time.deltaTime);
+        }
         homePosition = new Vector3(0, 4.5f, 128f);
         if(rb.position == homePosition)
         {
             batAIState = BatAIState.atHome;
         }
     }
-
-    //private IEnumerator PauseGameTemp()
-    //{
-        
-    //    if (!settingBallTriggered)
-    //    {
-    //        settingBallTriggered = true;
-    //        AISetBall = false;
-    //        yield return new WaitForSeconds(5); // Wait for score to be announced
-    //        AISetBall = true;
-    //        yield return new WaitForSeconds(6);
-    //        settingBallTriggered = false;
-    //    }
-    //}
-
 
     private void OnCollisionEnter(Collision collision)
     {

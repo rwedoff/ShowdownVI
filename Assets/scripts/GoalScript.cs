@@ -67,7 +67,10 @@ public class GoalScript : MonoBehaviour {
 
     public static IEnumerator ReadScore()
     {
-        if(PlayerScore >= 11 && OpponentScore <= 10)
+        var ball = GameObject.FindGameObjectWithTag("Ball");
+        ball.transform.position = new Vector3(0, 3, 0);
+        ball.GetComponent<Rigidbody>().velocity = new Vector3(0, 0, 0);
+        if (PlayerScore >= 11 && OpponentScore <= 10)
         {
             gameOver = true;
             playerWins.Play();

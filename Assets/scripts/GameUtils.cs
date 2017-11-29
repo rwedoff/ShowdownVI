@@ -13,6 +13,7 @@ public class GameUtils
         InPlay, SettingBall, BallSet
     }
     public static GamePlayState playState;
+    internal static bool tutorialMode;
 
     public static float Scale(float OldMin, float OldMax, float NewMin, float NewMax, float OldValue)
     {
@@ -26,15 +27,18 @@ public class GameUtils
         playerSide++;
         Rigidbody rb = ball.GetComponent<Rigidbody>();
         rb.velocity = new Vector3(0, 0, 0);
-        if (playerSide % 4 < 2)
+        if (!tutorialMode)
         {
-            PlayerServe = true;
-            rb.MovePosition(new Vector3(0, 3, -100f));
-        }
-        else
-        {
-            PlayerServe = false;
-            rb.MovePosition(new Vector3(0, 3, 100f));
+            if (playerSide % 4 < 2)
+            {
+                PlayerServe = true;
+                rb.MovePosition(new Vector3(0, 3, -100f));
+            }
+            else
+            {
+                PlayerServe = false;
+                rb.MovePosition(new Vector3(0, 3, 100f));
+            }
         }
     }
 

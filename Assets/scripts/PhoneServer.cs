@@ -5,6 +5,7 @@ using System.Text;
 using System;
 using System.Threading;
 using System.Collections;
+using UnityEngine.UI;
 
 public class PhoneServer : MonoBehaviour
 {
@@ -18,25 +19,38 @@ public class PhoneServer : MonoBehaviour
     private System.Object thisLock = new System.Object();
     private bool wasConnected;
     private AudioSource beginAudio;
-    public static bool Init;
     private Socket updSocket;
+    public Text ipText;
+    private bool tutorialRan;
+    private AudioSource tutorialAudio;
 
-#region Unity Code
+    public static bool Init;
+    public bool tutorialMode;
+    private bool resetAvail;
+
+    #region Unity Code
     private void Start()
     {
         isConnected = false;
         wasConnected = false;
         beginAudio = GetComponent<AudioSource>();
         Init = true;
+        GameUtils.tutorialMode = tutorialMode;
+        tutorialRan = false;
+        if (tutorialMode)
+        {
+            tutorialAudio = GetComponents<AudioSource>()[1];
+        }
     }
 
     private void Update()
     {
         if (Init && !beginAudio.isPlaying)
         {
-            //DEBUG ONLY
+            //Debug only
             //Time.timeScale = 0;
             //Init = false;
+            //End debug
             Init = true;
             Time.timeScale = 1;
 
@@ -50,7 +64,7 @@ public class PhoneServer : MonoBehaviour
             Init = false;
         }
 
-        if (!wasConnected && isConnected)
+        if (!wasConnected && isConnected && !tutorialMode)
         {
             NumberSpeech.PlayAudio(14);
             wasConnected = true;
@@ -62,6 +76,47 @@ public class PhoneServer : MonoBehaviour
             wasConnected = false;
             Time.timeScale = 0;
         }
+
+        if(tutorialMode && !wasConnected && isConnected)
+        {
+                tutorialRan = true;
+                BeginTutorial();
+        }
+        if (tutorialRan)
+        {
+            if (tutorialAudio.isPlaying)
+            {
+                resetAvail = true;
+                GameUtils.playState = GameUtils.GamePlayState.SettingBall;
+            }
+            else
+            {
+                GameUtils.PlayerServe = true;
+                Time.timeScale = 1;
+                StartCoroutine(TutorialReset());
+            }
+        }
+    }
+
+    private IEnumerator TutorialReset()
+    {
+        if (resetAvail)
+        {
+            resetAvail = false;
+            yield return new WaitForSeconds(45);
+            NumberSpeech.PlayAudio(17);
+            GameUtils.playState = GameUtils.GamePlayState.SettingBall;
+            GameUtils.PlayerServe = true;
+            resetAvail = true;
+        }
+
+    }
+
+    private void BeginTutorial()
+    {
+
+        wasConnected = true;
+        tutorialAudio.Play();
     }
 
     private void OnDisable()
@@ -119,6 +174,7 @@ public class PhoneServer : MonoBehaviour
             if (ip.AddressFamily == AddressFamily.InterNetwork)
             {
                 ipAddress = ip;
+                ipText.text = "Computer Code: " + ip;
             }
         }
         if (ipAddress == null)

@@ -2,11 +2,12 @@
 using System.Collections;
 using UnityEngine;
 
-public class BallScript : MonoBehaviour
+public class BallScriptTwoTone : MonoBehaviour
 {
     public float inputSpeed;
     private Rigidbody rb;
     private static AudioSource ballSoundSource;
+    private static AudioSource opBallSoundSource;
     private AudioSource paddleSound;
     private AudioSource winSound;
     private AudioSource lostSound;
@@ -27,9 +28,10 @@ public class BallScript : MonoBehaviour
         AudioSource[] audioSources = GetComponents<AudioSource>();
         bat = GameObject.FindGameObjectWithTag("Player");
         ballSoundSource = audioSources[0];
-        paddleSound = audioSources[1];
-        outofTableSound = audioSources[2];
-        wallAudioSource = audioSources[3];
+        opBallSoundSource = audioSources[1];
+        paddleSound = audioSources[2];
+        outofTableSound = audioSources[3];
+        wallAudioSource = audioSources[4];
     }
 
     //Used for physics
@@ -62,7 +64,7 @@ public class BallScript : MonoBehaviour
             StartBallSound();
             //Change rolling sounds based on speed of ball
             //ballSoundSource.volume = GameUtils.Scale(0, maxspeed, 0, 1, Math.Abs(rb.velocity.magnitude));
-            
+            opBallSoundSource.pitch = GameUtils.Scale(0, maxspeed, 0.25f, 1f, Math.Abs(rb.velocity.magnitude));
             ballSoundSource.pitch = GameUtils.Scale(0, maxspeed, 0.25f, 1f, Math.Abs(rb.velocity.magnitude));
 
             //Add a speed limit to the ball

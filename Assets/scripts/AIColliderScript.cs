@@ -4,6 +4,7 @@ using UnityEngine.UI;
 public class AIColliderScript : MonoBehaviour {
     public Dropdown levelDropDown;
     internal static bool ballInZone;
+    internal static int difficulty;
 
     private void Start()
     {
@@ -17,6 +18,7 @@ public class AIColliderScript : MonoBehaviour {
                 OnMyValueChange(levelDropDown);
             });
             levelDropDown.value = PlayerPrefs.GetInt("diff");
+            difficulty = levelDropDown.value;
             SetPrefs(levelDropDown.value);
         }
     }
@@ -24,6 +26,7 @@ public class AIColliderScript : MonoBehaviour {
     private void OnMyValueChange(Dropdown dropDown)
     {
         PlayerPrefs.SetInt("diff", dropDown.value);
+        difficulty = dropDown.value;
         SetPrefs(dropDown.value);
     }
 
