@@ -259,7 +259,7 @@ public class PhoneServer : MonoBehaviour
                 while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
                 {
                     dataString = Encoding.ASCII.GetString(bytes, 0, i);
-                    //Debug.Log("Received:"+ dataString +"data");
+                    Debug.Log("Received:"+ dataString +"data");
                     if (dataString.Equals("up;"))
                     {
                         PaddleScript.ScreenPressDown = true;

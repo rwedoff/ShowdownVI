@@ -70,7 +70,10 @@ public class BallScript : MonoBehaviour
             rb.velocity = Vector3.ClampMagnitude(oldVel, maxspeed);
 
             //DEBUG ONLY uncomment this
-            BallSpeedPoints();
+            if (GameUtils.ballSpeedPointsEnabled)
+            {
+                BallSpeedPoints();
+            }
 
             CheckBallInGame();
         }

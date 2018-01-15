@@ -10,10 +10,11 @@ public class GameUtils
 
     public enum GamePlayState
     {
-        InPlay, SettingBall, BallSet
+        InPlay, SettingBall, BallSet, ExpMode
     }
     public static GamePlayState playState;
     internal static bool tutorialMode;
+    internal static bool ballSpeedPointsEnabled = true;
 
     public static float Scale(float OldMin, float OldMax, float NewMin, float NewMax, float OldValue)
     {

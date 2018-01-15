@@ -51,7 +51,7 @@ public class BallScriptTwoTone : MonoBehaviour
         if (PhoneServer.Init)
         {
             //DEBUG
-            GameUtils.playState = GameUtils.GamePlayState.InPlay;
+            //GameUtils.playState = GameUtils.GamePlayState.InPlay;
             //END DEBUG
             return;
         }
@@ -59,13 +59,17 @@ public class BallScriptTwoTone : MonoBehaviour
         {
             SettingBall();
         }
-        else if(GameUtils.playState == GameUtils.GamePlayState.InPlay)
+        else if(GameUtils.playState == GameUtils.GamePlayState.InPlay || GameUtils.playState == GameUtils.GamePlayState.ExpMode)
         {
             StartBallSound();
             //Change rolling sounds based on speed of ball
             //ballSoundSource.volume = GameUtils.Scale(0, maxspeed, 0, 1, Math.Abs(rb.velocity.magnitude));
-            opBallSoundSource.pitch = GameUtils.Scale(0, maxspeed, 0.25f, 1f, Math.Abs(rb.velocity.magnitude));
-            ballSoundSource.pitch = GameUtils.Scale(0, maxspeed, 0.25f, 1f, Math.Abs(rb.velocity.magnitude));
+            opBallSoundSource.pitch = GameUtils.Scale(0, maxspeed, 0.35f, 1f, Math.Abs(rb.velocity.magnitude))/1.3f;
+            ballSoundSource.pitch = GameUtils.Scale(0, maxspeed, 0.35f, 1f, Math.Abs(rb.velocity.magnitude));
+
+            //Change distance based on camera position
+            ballSoundSource.maxDistance = 130 - CameraController.CameraDeltaZ ;
+            opBallSoundSource.maxDistance = 260 - CameraController.CameraDeltaZ;
 
             //Add a speed limit to the ball
             Vector3 oldVel = rb.velocity;

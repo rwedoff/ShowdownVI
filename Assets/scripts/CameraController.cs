@@ -4,6 +4,7 @@ using Windows.Kinect;
 public class CameraController : MonoBehaviour
 {
     public float smooth = 0.01F;
+    public static float CameraDeltaZ;
     private float yVelocity = 0.0F;
     private float xVelocity = 0.0F;
     private float zVelocity = 0.0F;
@@ -12,6 +13,7 @@ public class CameraController : MonoBehaviour
     private void Start()
     {
         startingZPosition = transform.position.z;
+        CameraDeltaZ = 0;
     }
 
     private void FixedUpdate()
@@ -19,12 +21,16 @@ public class CameraController : MonoBehaviour
         CameraSpacePoint closestZPosition = BodySourceView.closestZPosition;
         CameraSpacePoint furtherestZPosition = BodySourceView.baseKinectPosition;
 
-        float deltaZPosition = (furtherestZPosition.Z - closestZPosition.Z) * 100;
+        CameraDeltaZ = (furtherestZPosition.Z - closestZPosition.Z) * 100;
+        //transform.position =
+        //    new Vector3(0,
+        //        (closestZPosition.Y * 100) + 30.16f,
+        //        (startingZPosition + CameraDeltaZ) + 20f);
 
-        transform.position = 
-            new Vector3(0, 
-                (closestZPosition.Y * 100) + 30.16f, 
-                (startingZPosition + deltaZPosition) + 20f);
+        //No Y movement
+        transform.position =
+            new Vector3(0, transform.position.y, startingZPosition + CameraDeltaZ);
+        
 
         Quaternion fr = BodySourceView.faceRotation;
         if (fr != null)

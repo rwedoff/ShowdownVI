@@ -70,14 +70,14 @@ public class GoalScript : MonoBehaviour {
         var ball = GameObject.FindGameObjectWithTag("Ball");
         ball.transform.position = new Vector3(0, 3, 0);
         ball.GetComponent<Rigidbody>().velocity = new Vector3(0, 0, 0);
-        if (PlayerScore >= 11 && OpponentScore <= 10)
+        if (PlayerScore >= 11 && OpponentScore < 10)
         {
             gameOver = true;
             playerWins.Play();
             yield return new WaitForSeconds(playerWins.clip.length - 1f);
             SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
         }
-        else if(OpponentScore >= 11 && PlayerScore <= 10)
+        else if(OpponentScore >= 11 && PlayerScore < 10)
         {
             gameOver = true;
             opponentWins.Play();
@@ -87,7 +87,22 @@ public class GoalScript : MonoBehaviour {
         }
         else if (PlayerScore >= 11 && OpponentScore >= 11)
         {
-            if(PlayerScore > OpponentScore)
+            if (PlayerScore > OpponentScore + 1)
+            {
+                gameOver = true;
+                playerWins.Play();
+                yield return new WaitForSeconds(playerWins.clip.length - 1f);
+                SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
+            }
+            else if (OpponentScore > PlayerScore + 1)
+            {
+                gameOver = true;
+                opponentWins.Play();
+                yield return new WaitForSeconds(opponentWins.clip.length - 1f);
+                //Destroy(GetComponent<MenuSpeech>());
+                SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
+            }
+            else if (PlayerScore > OpponentScore)
             {
                 playerUpAudio.Play();
             }
@@ -98,6 +113,17 @@ public class GoalScript : MonoBehaviour {
             else
             {
                 tiedAudio.Play();
+            }
+            yield return new WaitForSeconds(5);
+            if (GameUtils.PlayerServe)
+            {
+                AudioSource t = NumberSpeech.PlayAudio(17);
+                yield return new WaitForSeconds(t.clip.length - 0.7f);
+            }
+            else
+            {
+                AudioSource t = NumberSpeech.PlayAudio(18);
+                yield return new WaitForSeconds(t.clip.length - 0.7f);
             }
         }
         else

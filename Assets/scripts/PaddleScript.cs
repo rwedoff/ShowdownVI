@@ -58,25 +58,24 @@ public class PaddleScript : MonoBehaviour
 
         //Smooth and set the position of the paddle
         //Smoothing used so paddle won't phase through ball
-        //Vector3 direction = (new Vector3(-xPos, yPos, (zPos - 142f)) - transform.position).normalized;
-        //rb.MovePosition(transform.position + (direction * 200 * Time.deltaTime));
+        Vector3 direction = (new Vector3(-xPos, yPos, (zPos - 142f)) - transform.position).normalized;
+        rb.MovePosition(transform.position + (direction * 200 * Time.deltaTime));
 
 
         //DEBUG ONLY
-        float movehorizontal = Input.GetAxis("Horizontal");
-        float movevertical = Input.GetAxis("Vertical");
-        Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
-        rb.MovePosition(transform.position + movement * Time.deltaTime * 300);
+        //float movehorizontal = Input.GetAxis("Horizontal");
+        //float movevertical = Input.GetAxis("Vertical");
+        //Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
+        //rb.MovePosition(transform.position + movement * Time.deltaTime * 300);
 
         //No smoothing
         //rb.MovePosition(new Vector3(-xPos, 4.5f, (zPos - 188.5f)));
 
+        batDroneAudio.maxDistance = 130 - CameraController.CameraDeltaZ;
+
         RotateBat(BodySourceView.wristPosition, BodySourceView.handPosition);
 
         CheckBatInGame();
-        Debug.Log(rb.velocity.magnitude);
-        batDroneAudio.pitch = GameUtils.Scale(0, 300, 0.5f, 1f, Math.Abs(rb.velocity.magnitude));
-
     }
 
     private void CheckBatInGame()

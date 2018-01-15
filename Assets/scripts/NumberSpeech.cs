@@ -28,7 +28,8 @@ public class NumberSpeech : MonoBehaviour
             { 15, a[15] },
             { 16, a[16] },
             { 17, a[17] },
-            { 18, a[18] }
+            { 18, a[18] },
+            { 19, a[19] }
         };
     }
 
