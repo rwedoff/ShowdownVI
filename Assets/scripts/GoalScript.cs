@@ -75,7 +75,7 @@ public class GoalScript : MonoBehaviour {
             gameOver = true;
             playerWins.Play();
             yield return new WaitForSeconds(playerWins.clip.length - 1f);
-            SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
+            SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Single);
         }
         else if(OpponentScore >= 11 && PlayerScore < 10)
         {
@@ -83,7 +83,7 @@ public class GoalScript : MonoBehaviour {
             opponentWins.Play();
             yield return new WaitForSeconds(opponentWins.clip.length - 1f);
             //Destroy(GetComponent<MenuSpeech>());
-            SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
+            SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Single);
         }
         else if (PlayerScore >= 11 && OpponentScore >= 11)
         {
@@ -92,7 +92,7 @@ public class GoalScript : MonoBehaviour {
                 gameOver = true;
                 playerWins.Play();
                 yield return new WaitForSeconds(playerWins.clip.length - 1f);
-                SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
+                SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Single);
             }
             else if (OpponentScore > PlayerScore + 1)
             {
@@ -100,7 +100,7 @@ public class GoalScript : MonoBehaviour {
                 opponentWins.Play();
                 yield return new WaitForSeconds(opponentWins.clip.length - 1f);
                 //Destroy(GetComponent<MenuSpeech>());
-                SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
+                SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Single);
             }
             else if (PlayerScore > OpponentScore)
             {
