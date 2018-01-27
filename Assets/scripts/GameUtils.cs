@@ -33,12 +33,12 @@ public class GameUtils
             if (playerSide % 4 < 2)
             {
                 PlayerServe = true;
-                rb.MovePosition(new Vector3(0, 3, -100f));
+                rb.MovePosition(new Vector3(0, 5, -100f));
             }
             else
             {
                 PlayerServe = false;
-                rb.MovePosition(new Vector3(0, 3, 100f));
+                rb.MovePosition(new Vector3(0, 5, 100f));
             }
         }
     }

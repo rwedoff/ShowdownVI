@@ -169,7 +169,7 @@ public partial class AudioManager : MonoBehaviour {
 		}
 
 #if UNITY_EDITOR
-		Debug.Log( "[AudioManager] Initialized..." );
+		//Debug.Log( "[AudioManager] Initialized..." );
 #endif
 	}
 

@@ -9,7 +9,7 @@ public class PaddleScript : MonoBehaviour
     private bool batOutofBounds;
 
     private UnityEngine.AudioSource wallCollideAudio;
-    private UnityEngine.AudioSource batDroneAudio;
+    //private UnityEngine.AudioSource batDroneAudio;
 
     public static bool ScreenPressDown { get; internal set; }
     private float oldTime;
@@ -20,7 +20,7 @@ public class PaddleScript : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         wallCollideAudio = GetComponents<UnityEngine.AudioSource>()[0];
-        batDroneAudio = GetComponents<UnityEngine.AudioSource>()[1];
+       // batDroneAudio = GetComponents<UnityEngine.AudioSource>()[1];
         batOutofBounds = true;
         wallCollideAudio.loop = true;
     }
@@ -31,8 +31,9 @@ public class PaddleScript : MonoBehaviour
         if (PhoneServer.Init)
         {
             //DEBUG ONLY
-            //Time.timeScale = 0;
-            Time.timeScale = 1;
+            //Time.timeScale = 1;
+            //END DEBUG
+            Time.timeScale = 0;
         }
         else
         {
@@ -41,10 +42,12 @@ public class PaddleScript : MonoBehaviour
         //MoveBat(BodySourceView.spineMidPosition, BodySourceView.handPosition);
         CameraSpacePoint midSpinePosition = BodySourceView.baseKinectPosition;
         CameraSpacePoint handPosition = BodySourceView.handPosition;
+
         CameraSpacePoint sholderPos = BodySourceView.shoulderPosition;
+        float centerXPoint = midSpinePosition.X + (Math.Abs(sholderPos.X - midSpinePosition.X) / 2) ;
 
         //Calculate the position of the paddle based on the distance from the mid spine join
-        float xPos = (sholderPos.X - handPosition.X) * 100,
+        float xPos = (centerXPoint - handPosition.X) * 100,
               zPos = (midSpinePosition.Z - handPosition.Z) * 100;
         float yPos = transform.position.y;
         if (ScreenPressDown)
@@ -67,11 +70,12 @@ public class PaddleScript : MonoBehaviour
         //float movevertical = Input.GetAxis("Vertical");
         //Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
         //rb.MovePosition(transform.position + movement * Time.deltaTime * 300);
+        //END DEBUG
 
         //No smoothing
         //rb.MovePosition(new Vector3(-xPos, 4.5f, (zPos - 188.5f)));
 
-        batDroneAudio.maxDistance = 130 - CameraController.CameraDeltaZ;
+        //batDroneAudio.maxDistance = 130 - CameraController.CameraDeltaZ;
 
         RotateBat(BodySourceView.wristPosition, BodySourceView.handPosition);
 
@@ -139,7 +143,24 @@ public class PaddleScript : MonoBehaviour
         float o = handBasePos.Z - handTipPos.Z;
         float a = handBasePos.X - handTipPos.X;
         float angle = Mathf.Rad2Deg * Mathf.Atan2(o, a);
-        rb.MoveRotation(Quaternion.Euler(0, angle, 0));
+
+        if(-35 <= angle && angle < 35)
+        {
+            rb.MoveRotation(Quaternion.Euler(0, 0, 0));
+        }
+        else if(angle >= 35 && angle < 90)
+        {
+            rb.MoveRotation(Quaternion.Euler(0, 45, 0));
+        }
+        else if(angle >= 90)
+        {
+            rb.MoveRotation(Quaternion.Euler(0, 180, 0));
+        }
+        else if(angle < -35)
+        {
+            rb.MoveRotation(Quaternion.Euler(0, -45, 0));
+        }
+        //rb.MoveRotation(Quaternion.Euler(0, angle, 0));
     }
 
 }

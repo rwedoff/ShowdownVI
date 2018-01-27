@@ -16,7 +16,6 @@ public class BallScriptTwoTone : MonoBehaviour
     private float maxspeed = 250;
     private float oldTime;
     private bool timerStarted;
-    private bool debugMode = true;
     private GameObject bat;
     private bool aiSettingBall = false;
 
@@ -40,10 +39,10 @@ public class BallScriptTwoTone : MonoBehaviour
         //DEBUG ONLY
 
         //Manual Keyboard Control of Ball
-        float movehorizontal = Input.GetAxis("Horizontal");
-        float movevertical = Input.GetAxis("Vertical");
-        Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
-        rb.AddForce(movement * inputSpeed);
+        //float movehorizontal = Input.GetAxis("Horizontal");
+        //float movevertical = Input.GetAxis("Vertical");
+        //Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
+        //rb.AddForce(movement * inputSpeed);
 
         //END DEBUG
 

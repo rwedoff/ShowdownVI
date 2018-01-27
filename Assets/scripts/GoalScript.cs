@@ -40,7 +40,8 @@ public class GoalScript : MonoBehaviour {
 
     private void Update()
     {
-        scoreText.text = "Player " + PlayerScore + " - " + OpponentScore + " Opponent";
+        if(GameUtils.playState != GameUtils.GamePlayState.ExpMode)
+            scoreText.text = "Player " + PlayerScore + " - " + OpponentScore + " Opponent";
     }
 
     void OnTriggerEnter(Collider other)
@@ -63,12 +64,20 @@ public class GoalScript : MonoBehaviour {
             scoreText.text = "Player " + PlayerScore + " - " + OpponentScore + " Opponent";
             StartCoroutine(ReadScore());
         }
+        else if(other.tag == "Ball" && GameUtils.playState == GameUtils.GamePlayState.ExpMode)
+        {
+            if(gameObject.tag == "SouthGoal")
+            {
+                PlayLoseSound();
+                Destroy(other.gameObject);
+            }
+        }
     }
 
     public static IEnumerator ReadScore()
     {
         var ball = GameObject.FindGameObjectWithTag("Ball");
-        ball.transform.position = new Vector3(0, 3, 0);
+        ball.transform.position = new Vector3(0, 5, 0);
         ball.GetComponent<Rigidbody>().velocity = new Vector3(0, 0, 0);
         if (PlayerScore >= 11 && OpponentScore < 10)
         {

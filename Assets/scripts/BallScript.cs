@@ -15,7 +15,6 @@ public class BallScript : MonoBehaviour
     private float maxspeed = 250;
     private float oldTime;
     private bool timerStarted;
-    private bool debugMode = true;
     private GameObject bat;
     private bool aiSettingBall = false;
 
@@ -49,8 +48,9 @@ public class BallScript : MonoBehaviour
         if (PhoneServer.Init)
         {
             //DEBUG
-            GameUtils.playState = GameUtils.GamePlayState.InPlay;
+            //GameUtils.playState = GameUtils.GamePlayState.InPlay;
             //END DEBUG
+            GameUtils.PlayerServe = true;
             return;
         }
         else if(GameUtils.playState == GameUtils.GamePlayState.SettingBall)
@@ -62,8 +62,12 @@ public class BallScript : MonoBehaviour
             StartBallSound();
             //Change rolling sounds based on speed of ball
             //ballSoundSource.volume = GameUtils.Scale(0, maxspeed, 0, 1, Math.Abs(rb.velocity.magnitude));
-            
+
+            //Change and limit pitch change on ball
             ballSoundSource.pitch = GameUtils.Scale(0, maxspeed, 0.25f, 1f, Math.Abs(rb.velocity.magnitude));
+
+            //Change distance based on camera position
+            ballSoundSource.maxDistance = 130 - CameraController.CameraDeltaZ;
 
             //Add a speed limit to the ball
             Vector3 oldVel = rb.velocity;

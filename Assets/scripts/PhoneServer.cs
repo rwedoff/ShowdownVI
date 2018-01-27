@@ -156,7 +156,7 @@ public class PhoneServer : MonoBehaviour
         while (!isConnected)
         {
             updSocket.SendTo(sendbuf, ep);
-            Debug.Log("Message sent to the broadcast address");
+            //Debug.Log("Message sent to the broadcast address");
             Thread.Sleep(2000);
         }
         updSocket.Close();

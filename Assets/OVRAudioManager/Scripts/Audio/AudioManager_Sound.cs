@@ -63,8 +63,8 @@ public partial class AudioManager : MonoBehaviour {
 		int numBuffers = 4;
 		AudioSettings.GetDSPBufferSize( out bufferLength, out numBuffers );
 		if ( Application.isPlaying ) {
-			Debug.Log( "[AudioManager] Audio Sample Rate: " + AudioSettings.outputSampleRate );
-			Debug.Log( "[AudioManager] Audio Buffer Length: " + bufferLength + " Size: " + numBuffers );
+			//Debug.Log( "[AudioManager] Audio Sample Rate: " + AudioSettings.outputSampleRate );
+			//Debug.Log( "[AudioManager] Audio Buffer Length: " + bufferLength + " Size: " + numBuffers );
 		}
 
 		// find the audio listener for playing regular 2D sounds

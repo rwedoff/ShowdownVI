@@ -24,8 +24,11 @@ public class ExpManager : MonoBehaviour
     private List<ExpData> expResults = new List<ExpData>();
     private int currBallType;
     private int currBallSpeed;
+    private float oldTime;
+    private bool timerStarted;
+    private bool newBallOk;
 
-    private void Shuffle()
+    private void ShuffleArray()
     {
         List<int> _expList = new List<int>();
         for (int i = 0; i <= 14; i++) //Range of positions
@@ -52,9 +55,11 @@ public class ExpManager : MonoBehaviour
     {
         GameUtils.playState = GameUtils.GamePlayState.ExpMode;
         GameUtils.ballSpeedPointsEnabled = false;
+        timerStarted = true;
+        newBallOk = true;
         currBallNumber = -1;
         CreateBallPosition();
-        Shuffle();
+        ShuffleArray();
         nextBallButton.onClick.AddListener(StartNextBall);
         saveExpButton.onClick.AddListener(SaveCSV);
     }
@@ -73,7 +78,7 @@ public class ExpManager : MonoBehaviour
         Rigidbody rb = currentBall.GetComponent<Rigidbody>();
         currentBall.GetComponents<AudioSource>()[1].Play();
         //currBallSpeed = Random.Range(75, 250); //Used for random ball speeds
-        currBallSpeed = 125;
+        currBallSpeed = 75;
         rb.AddForce(ballPositions[currBallType].destination * currBallSpeed, ForceMode.Acceleration);
         return isNewBallAvail;
     }
@@ -83,96 +88,112 @@ public class ExpManager : MonoBehaviour
         //Left Start
         ballPositions.Add(0, new BallPath
         {
-            origin = new Vector3(-42, 3, 110),
-            destination = new Vector3(0, 3, -110)
+            origin = new Vector3(-42, 5, 110),
+            destination = new Vector3(0, 5, -110)
         });
         ballPositions.Add(1, new BallPath
         {
-            origin = new Vector3(-42, 3, 110),
-            destination = new Vector3(11, 3, -110)
+            origin = new Vector3(-42, 5, 110),
+            destination = new Vector3(11, 5, -110)
         });
         ballPositions.Add(2, new BallPath
         {
-            origin = new Vector3(-42, 3, 110),
-            destination = new Vector3(21, 3, -110)
+            origin = new Vector3(-42, 5, 110),
+            destination = new Vector3(21, 5, -110)
         });
         ballPositions.Add(3, new BallPath
         {
-            origin = new Vector3(-42, 3, 110),
-            destination = new Vector3(31, 3, -110)
+            origin = new Vector3(-42, 5, 110),
+            destination = new Vector3(31, 5, -110)
         });
         ballPositions.Add(4, new BallPath
         {
-            origin = new Vector3(-42, 3, 110),
-            destination = new Vector3(42, 3, -110)
+            origin = new Vector3(-42, 5, 110),
+            destination = new Vector3(42, 5, -110)
         });
 
         //Middle Start
         ballPositions.Add(5, new BallPath
         {
-            origin = new Vector3(0, 3, 110),
-            destination = new Vector3(-21, 3, -110)
+            origin = new Vector3(0, 5, 110),
+            destination = new Vector3(-21, 5, -110)
         });
         ballPositions.Add(6, new BallPath
         {
-            origin = new Vector3(0, 3, 110),
-            destination = new Vector3(-11, 3, -110)
+            origin = new Vector3(0, 5, 110),
+            destination = new Vector3(-11, 5, -110)
         });
         ballPositions.Add(7, new BallPath
         {
-            origin = new Vector3(0, 3, 110),
-            destination = new Vector3(0, 3, -110)
+            origin = new Vector3(0, 5, 110),
+            destination = new Vector3(0, 5, -110)
         });
         ballPositions.Add(8, new BallPath
         {
-            origin = new Vector3(0, 3, 110),
-            destination = new Vector3(11, 3, -110)
+            origin = new Vector3(0, 5, 110),
+            destination = new Vector3(11, 5, -110)
         });
         ballPositions.Add(9, new BallPath
         {
-            origin = new Vector3(0, 3, 110),
-            destination = new Vector3(21, 3, -110)
+            origin = new Vector3(0, 5, 110),
+            destination = new Vector3(21, 5, -110)
         });
 
         //Right Start
         ballPositions.Add(10, new BallPath
         {
-            origin = new Vector3(42, 3, 110),
-            destination = new Vector3(0, 3, -110)
+            origin = new Vector3(42, 5, 110),
+            destination = new Vector3(0, 5, -110)
         });
         ballPositions.Add(11, new BallPath
         {
-            origin = new Vector3(42, 3, 110),
-            destination = new Vector3(-11, 3, -110)
+            origin = new Vector3(42, 5, 110),
+            destination = new Vector3(-11, 5, -110)
         });
         ballPositions.Add(12, new BallPath
         {
-            origin = new Vector3(42, 3, 110),
-            destination = new Vector3(-21, 3, -110)
+            origin = new Vector3(42, 5, 110),
+            destination = new Vector3(-21, 5, -110)
         });
         ballPositions.Add(13, new BallPath
         {
-            origin = new Vector3(42, 3, 110),
-            destination = new Vector3(-31, 3, -110)
+            origin = new Vector3(42, 5, 110),
+            destination = new Vector3(-31, 5, -110)
         });
         ballPositions.Add(14, new BallPath
         {
-            origin = new Vector3(42, 3, 110),
-            destination = new Vector3(-42, 3, -110)
+            origin = new Vector3(42, 5, 110),
+            destination = new Vector3(-42, 5, -110)
         });
     }
 
     private void Update()
     {
         GameUtils.playState = GameUtils.GamePlayState.ExpMode;
+
+        if (timerStarted)
+        {
+            if (currBallNumber == -1 || Time.time > oldTime + 3)
+            {
+                timerStarted = false;
+                newBallOk = true;
+            }
+        }
     }
 
     private void StartNextBall()
     {
-        if(currBallNumber != -1)
-            CollectExpData();
-        Destroy(currentBall);
-        StartCoroutine(NextBallSpeech());
+        if (newBallOk)
+        {
+            newBallOk = false;
+            Debug.Log("Sending Ball");
+            timerStarted = true;
+            oldTime = Time.time;
+            if (currBallNumber != -1)
+                CollectExpData();
+            Destroy(currentBall);
+            StartCoroutine(NextBallSpeech());
+        }
     }
     
     private void CollectExpData()
