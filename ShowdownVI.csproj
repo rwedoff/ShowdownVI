@@ -93,7 +93,6 @@
     <Compile Include="Assets\OSPNative\scripts\ONSPAudioSource.cs" />
     <Compile Include="Assets\OSPNative\scripts\ONSPProfiler.cs" />
     <Compile Include="Assets\OSPNative\scripts\ONSPVersion.cs" />
-    <Compile Include="Assets\OVRAudioManager\Scenes\Scripts\TestScript.cs" />
     <Compile Include="Assets\OVRAudioManager\Scripts\Audio\AmbienceEmitter.cs" />
     <Compile Include="Assets\OVRAudioManager\Scripts\Audio\AudioManager.cs" />
     <Compile Include="Assets\OVRAudioManager\Scripts\Audio\AudioManager_Sound.cs" />

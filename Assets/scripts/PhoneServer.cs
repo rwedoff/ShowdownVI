@@ -244,7 +244,7 @@ public class PhoneServer : MonoBehaviour
 
                 if (client != null)
                 {
-                    Debug.Log("Connected!");
+                    Debug.Log("App Connected!");
                     lock (thisLock)
                     {
                         isConnected = true;

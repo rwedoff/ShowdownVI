@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using JetBrains.Annotations;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -15,72 +16,81 @@ public class ExpManager : MonoBehaviour
     public Button nextBallButton;
     public Button saveExpButton;
     public Dropdown hitResultDropdown;
+    public Button MissedButton;
 
-    private GameObject currentBall;
+    private GameObject _currentBall;
     private Dictionary<int, BallPath> ballPositions= new Dictionary<int, BallPath>();
-    private IEnumerator<int> expList;
-    private int currBallNumber;
-    private string participantName;
+    private IEnumerator<int> _expList;
+    private int _currBallNumber;
+    private string _participantName;
     private List<ExpData> expResults = new List<ExpData>();
-    private int currBallType;
-    private int currBallSpeed;
-    private float oldTime;
-    private bool timerStarted;
-    private bool newBallOk;
+    private int _currBallType;
+    private int _currBallSpeed;
+    private float _oldTime;
+    private bool _timerStarted;
+    private bool _newBallOk;
+
+    /// <summary>
+    /// AudioSources
+    /// 0: Clapping, 1-5: Good 6-8: Missed
+    /// </summary>
+    private AudioSource[] _audioSources;
 
     private void ShuffleArray()
     {
-        List<int> _expList = new List<int>();
+        List<int> expListLoc = new List<int>();
         for (int i = 0; i <= 14; i++) //Range of positions
         {
             for (int j = 0; j <= 3; j++) //Times per position
             {
-                _expList.Add(i);
+                expListLoc.Add(i);
             }
         }
         System.Random rng = new System.Random();
-        int n = _expList.Count;
+        int n = expListLoc.Count;
         while (n > 1)
         {
             n--;
             int k = rng.Next(n + 1);
-            int value = _expList[k];
-            _expList[k] = _expList[n];
-            _expList[n] = value;
+            int value = expListLoc[k];
+            expListLoc[k] = expListLoc[n];
+            expListLoc[n] = value;
         }
-        expList = _expList.GetEnumerator();
+        _expList = expListLoc.GetEnumerator();
     }
 
+    [UsedImplicitly]
     private void Start()
     {
         GameUtils.playState = GameUtils.GamePlayState.ExpMode;
         GameUtils.ballSpeedPointsEnabled = false;
-        timerStarted = true;
-        newBallOk = true;
-        currBallNumber = -1;
+        _timerStarted = true;
+        _newBallOk = true;
+        _currBallNumber = -1;
         CreateBallPosition();
         ShuffleArray();
-        nextBallButton.onClick.AddListener(StartNextBall);
-        saveExpButton.onClick.AddListener(SaveCSV);
+        nextBallButton.onClick.AddListener(() => StartNextBall(true));
+        saveExpButton.onClick.AddListener(SaveCsv);
+        MissedButton.onClick.AddListener(() => StartNextBall(false));
+        _audioSources = GetComponents<AudioSource>();
     }
 
-    private bool SpawnBall()
+    private void SpawnBall()
     {
-        currBallType = expList.Current;
-        currBallNumber++;
-        ballAndPosText.text = "Ball: " + currBallNumber + "   Position: " + currBallType;
-        bool isNewBallAvail = expList.MoveNext();
+        _currBallType = _expList.Current;
+        _currBallNumber++;
+        ballAndPosText.text = "Ball: " + _currBallNumber + "   Position: " + _currBallType;
+        bool isNewBallAvail = _expList.MoveNext();
         if (!isNewBallAvail)
         {
-            return isNewBallAvail;
+            return;
         }
-        currentBall = Instantiate(ballObject, ballPositions[currBallType].origin, new Quaternion());
-        Rigidbody rb = currentBall.GetComponent<Rigidbody>();
-        currentBall.GetComponents<AudioSource>()[1].Play();
+        _currentBall = Instantiate(ballObject, ballPositions[_currBallType].Origin, new Quaternion());
+        Rigidbody rb = _currentBall.GetComponent<Rigidbody>();
+        _currentBall.GetComponents<AudioSource>()[1].Play();
         //currBallSpeed = Random.Range(75, 250); //Used for random ball speeds
-        currBallSpeed = 75;
-        rb.AddForce(ballPositions[currBallType].destination * currBallSpeed, ForceMode.Acceleration);
-        return isNewBallAvail;
+        _currBallSpeed = 75;
+        rb.AddForce(ballPositions[_currBallType].Destination * _currBallSpeed, ForceMode.Acceleration);
     }
 
     private void CreateBallPosition()
@@ -88,128 +98,137 @@ public class ExpManager : MonoBehaviour
         //Left Start
         ballPositions.Add(0, new BallPath
         {
-            origin = new Vector3(-42, 5, 110),
-            destination = new Vector3(0, 5, -110)
+            Origin = new Vector3(-42, 5, 110),
+            Destination = new Vector3(0, 5, -110)
         });
         ballPositions.Add(1, new BallPath
         {
-            origin = new Vector3(-42, 5, 110),
-            destination = new Vector3(11, 5, -110)
+            Origin = new Vector3(-42, 5, 110),
+            Destination = new Vector3(11, 5, -110)
         });
         ballPositions.Add(2, new BallPath
         {
-            origin = new Vector3(-42, 5, 110),
-            destination = new Vector3(21, 5, -110)
+            Origin = new Vector3(-42, 5, 110),
+            Destination = new Vector3(21, 5, -110)
         });
         ballPositions.Add(3, new BallPath
         {
-            origin = new Vector3(-42, 5, 110),
-            destination = new Vector3(31, 5, -110)
+            Origin = new Vector3(-42, 5, 110),
+            Destination = new Vector3(31, 5, -110)
         });
         ballPositions.Add(4, new BallPath
         {
-            origin = new Vector3(-42, 5, 110),
-            destination = new Vector3(42, 5, -110)
+            Origin = new Vector3(-42, 5, 110),
+            Destination = new Vector3(42, 5, -110)
         });
 
         //Middle Start
         ballPositions.Add(5, new BallPath
         {
-            origin = new Vector3(0, 5, 110),
-            destination = new Vector3(-21, 5, -110)
+            Origin = new Vector3(0, 5, 110),
+            Destination = new Vector3(-21, 5, -110)
         });
         ballPositions.Add(6, new BallPath
         {
-            origin = new Vector3(0, 5, 110),
-            destination = new Vector3(-11, 5, -110)
+            Origin = new Vector3(0, 5, 110),
+            Destination = new Vector3(-11, 5, -110)
         });
         ballPositions.Add(7, new BallPath
         {
-            origin = new Vector3(0, 5, 110),
-            destination = new Vector3(0, 5, -110)
+            Origin = new Vector3(0, 5, 110),
+            Destination = new Vector3(0, 5, -110)
         });
         ballPositions.Add(8, new BallPath
         {
-            origin = new Vector3(0, 5, 110),
-            destination = new Vector3(11, 5, -110)
+            Origin = new Vector3(0, 5, 110),
+            Destination = new Vector3(11, 5, -110)
         });
         ballPositions.Add(9, new BallPath
         {
-            origin = new Vector3(0, 5, 110),
-            destination = new Vector3(21, 5, -110)
+            Origin = new Vector3(0, 5, 110),
+            Destination = new Vector3(21, 5, -110)
         });
 
         //Right Start
-        ballPositions.Add(10, new BallPath
+        ballPositions.Add(14, new BallPath
         {
-            origin = new Vector3(42, 5, 110),
-            destination = new Vector3(0, 5, -110)
-        });
-        ballPositions.Add(11, new BallPath
-        {
-            origin = new Vector3(42, 5, 110),
-            destination = new Vector3(-11, 5, -110)
-        });
-        ballPositions.Add(12, new BallPath
-        {
-            origin = new Vector3(42, 5, 110),
-            destination = new Vector3(-21, 5, -110)
+            Origin = new Vector3(42, 5, 110),
+            Destination = new Vector3(0, 5, -110)
         });
         ballPositions.Add(13, new BallPath
         {
-            origin = new Vector3(42, 5, 110),
-            destination = new Vector3(-31, 5, -110)
+            Origin = new Vector3(42, 5, 110),
+            Destination = new Vector3(-11, 5, -110)
         });
-        ballPositions.Add(14, new BallPath
+        ballPositions.Add(12, new BallPath
         {
-            origin = new Vector3(42, 5, 110),
-            destination = new Vector3(-42, 5, -110)
+            Origin = new Vector3(42, 5, 110),
+            Destination = new Vector3(-21, 5, -110)
+        });
+        ballPositions.Add(11, new BallPath
+        {
+            Origin = new Vector3(42, 5, 110),
+            Destination = new Vector3(-31, 5, -110)
+        });
+        ballPositions.Add(10, new BallPath
+        {
+            Origin = new Vector3(42, 5, 110),
+            Destination = new Vector3(-42, 5, -110)
         });
     }
 
+    [UsedImplicitly]
     private void Update()
     {
         GameUtils.playState = GameUtils.GamePlayState.ExpMode;
 
-        if (timerStarted)
+        if (_timerStarted)
         {
-            if (currBallNumber == -1 || Time.time > oldTime + 3)
+            if (_currBallNumber == -1 || Time.time > _oldTime + 3)
             {
-                timerStarted = false;
-                newBallOk = true;
+                _timerStarted = false;
+                _newBallOk = true;
             }
         }
     }
 
-    private void StartNextBall()
+    private void StartNextBall(bool hit)
     {
-        if (newBallOk)
+        if (_newBallOk)
         {
-            newBallOk = false;
+            _newBallOk = false;
             Debug.Log("Sending Ball");
-            timerStarted = true;
-            oldTime = Time.time;
-            if (currBallNumber != -1)
+            _timerStarted = true;
+            _oldTime = Time.time;
+            if (_currBallNumber != -1)
                 CollectExpData();
-            Destroy(currentBall);
-            StartCoroutine(NextBallSpeech());
+            Destroy(_currentBall);
+            if (_currBallNumber != -1)
+            {
+                StartCoroutine(hit ? NextBallHit() : NextBallMissed());
+            }
+            else
+            {
+                StartCoroutine(NextBallComing());
+            }
         }
+
     }
     
     private void CollectExpData()
     {
         expResults.Add(new ExpData()
         {
-            participantId = nameField.text,
-            ballNumber = currBallNumber,
-            ballType = currBallType,
-            ballSpeed = currBallSpeed,
-            ballResult = hitResultDropdown.value
+            ParticipantId = nameField.text,
+            BallNumber = _currBallNumber,
+            BallType = _currBallType,
+            BallSpeed = _currBallSpeed,
+            BallResult = hitResultDropdown.value
         });
         hitResultDropdown.value = 0;
     }
 
-    private void SaveCSV()
+    private void SaveCsv()
     {
         CollectExpData();
         int option = EditorUtility.DisplayDialogComplex("Finish Experiment",
@@ -251,41 +270,56 @@ public class ExpManager : MonoBehaviour
         var path = EditorUtility.SaveFilePanel(
               "Save Experiment as CSV",
               "",
-              participantName + "exp.csv",
+              _participantName + "exp.csv",
               "csv");
 
         if (path.Length != 0)
         {
-            if (sb != null)
-                File.WriteAllBytes(path, new UTF8Encoding().GetBytes(sb.ToString()));
+            File.WriteAllBytes(path, new UTF8Encoding().GetBytes(sb.ToString()));
         }
 
     }
 
-    private IEnumerator NextBallSpeech()
+    private IEnumerator NextBallHit()
+    {
+        _audioSources[0].Play();
+        _audioSources[Random.Range(1, 5)].Play();
+        yield return new WaitForSeconds(_audioSources[0].clip.length);
+        yield return NextBallComing();
+    }
+
+    private IEnumerator NextBallMissed()
+    {
+        int rand = Random.Range(6, 8);
+        _audioSources[rand].Play();
+        yield return new WaitForSeconds(_audioSources[rand].clip.length);
+        yield return NextBallComing();
+    }
+
+    private IEnumerator NextBallComing()
     {
         AudioSource aud = NumberSpeech.PlayAudio(19);
-        yield return new WaitForSeconds(aud.clip.length + 0.5f);
+        yield return new WaitForSeconds(aud.clip.length + 0.2f);
         SpawnBall();
     }
 }
 
 public class ExpData
 {
-    public string participantId { get; set; }
-    public int ballNumber { get; set; }
-    public int ballType { get; set; }
-    public int ballSpeed { get; set; }
-    public int ballResult { get; set; }
+    public string ParticipantId { get; set; }
+    public int BallNumber { get; set; }
+    public int BallType { get; set; }
+    public int BallSpeed { get; set; }
+    public int BallResult { get; set; }
 
     public override string ToString()
     {
-        return participantId + "," + ballNumber + "," + ballType + "," + ballSpeed + "," + ballResult;
+        return ParticipantId + "," + BallNumber + "," + BallType + "," + BallSpeed + "," + BallResult;
     }
 }
 
 public class BallPath
 {
-    public Vector3 origin { get; set; }
-    public Vector3 destination { get; set; }
+    public Vector3 Origin { get; set; }
+    public Vector3 Destination { get; set; }
 }

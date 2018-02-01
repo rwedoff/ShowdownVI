@@ -12,6 +12,7 @@ public class PaddleScript : MonoBehaviour
     //private UnityEngine.AudioSource batDroneAudio;
 
     public static bool ScreenPressDown { get; internal set; }
+
     private float oldTime;
     private float timerInterval;
 
@@ -144,22 +145,36 @@ public class PaddleScript : MonoBehaviour
         float a = handBasePos.X - handTipPos.X;
         float angle = Mathf.Rad2Deg * Mathf.Atan2(o, a);
 
-        if(-35 <= angle && angle < 35)
+        Quaternion newRotation = Quaternion.AngleAxis(0, Vector3.up);
+
+        if (-35 <= angle && angle < 35)
         {
-            rb.MoveRotation(Quaternion.Euler(0, 0, 0));
+            //rb.MoveRotation(Quaternion.Euler(0, 0, 0));
+            newRotation = Quaternion.AngleAxis(0, Vector3.up);
         }
-        else if(angle >= 35 && angle < 90)
+        else if (angle >= 35 && angle < 90)
         {
-            rb.MoveRotation(Quaternion.Euler(0, 45, 0));
+            //rb.MoveRotation(Quaternion.Euler(0, 45, 0));
+            newRotation = Quaternion.AngleAxis(45, Vector3.up);
         }
-        else if(angle >= 90)
+        else if (angle >= 90 && angle < 135)
         {
-            rb.MoveRotation(Quaternion.Euler(0, 180, 0));
+            //rb.MoveRotation(Quaternion.Euler(0, 135, 0));
+            newRotation = Quaternion.AngleAxis(135, Vector3.up);
         }
-        else if(angle < -35)
+        else if (angle >= 135)
         {
-            rb.MoveRotation(Quaternion.Euler(0, -45, 0));
+            //rb.MoveRotation(Quaternion.Euler(0, 180, 0));
+            newRotation = Quaternion.AngleAxis(180, Vector3.up);
         }
+        else if (angle < -35)
+        {
+            //rb.MoveRotation(Quaternion.Euler(0, -45, 0));
+            newRotation = Quaternion.AngleAxis(-45, Vector3.up);
+        }
+        rb.rotation = Quaternion.Slerp(transform.rotation, newRotation, .05f);
+
+        //No snapping or smoothing
         //rb.MoveRotation(Quaternion.Euler(0, angle, 0));
     }
 
