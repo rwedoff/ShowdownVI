@@ -30,6 +30,7 @@ GameObject:
   - component: {fileID: 82707606075890980}
   - component: {fileID: 114590939073024476}
   - component: {fileID: 114087058897266306}
+  - component: {fileID: 169780660307780090}
   m_Layer: 0
   m_Name: Ball
   m_TagString: Ball
@@ -179,7 +180,8 @@ AudioSource:
   m_GameObject: {fileID: 1380364652267520}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 24300001, guid: 1dd706bb85d8aef4e83a6229dbd62c36,
+    type: 2}
   m_audioClip: {fileID: 8300000, guid: 96c0cbafd70a6e04bbddf2231e283fc9, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 1
@@ -190,7 +192,7 @@ AudioSource:
   SpatializePostEffects: 1
   Priority: 64
   DopplerLevel: 0.83
-  MinDistance: 1
+  MinDistance: 34
   MaxDistance: 314
   Pan2D: 0
   rolloffMode: 0
@@ -201,64 +203,34 @@ AudioSource:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 2
-      time: 0.0031847134
-      value: 1.1
-      inSlope: -314.12555
-      outSlope: -314.12555
+      time: 0
+      value: 0.99557495
+      inSlope: -9.238987
+      outSlope: -9.238987
       tangentMode: 0
     - serializedVersion: 2
-      time: 0.006369427
-      value: 1.1
-      inSlope: -78.53139
-      outSlope: -78.53139
+      time: 0.21441513
+      value: 0.57920724
+      inSlope: -0.53465366
+      outSlope: -0.53465366
       tangentMode: 0
     - serializedVersion: 2
-      time: 0.012738854
-      value: 1.1
-      inSlope: -19.632847
-      outSlope: -19.632847
-      tangentMode: 0
+      time: 0.45713836
+      value: 0.43553162
+      inSlope: -1.3793291
+      outSlope: -1.3793291
+      tangentMode: 136
     - serializedVersion: 2
-      time: 0.025477707
-      value: 1.1
-      inSlope: -4.9082117
-      outSlope: -4.9082117
-      tangentMode: 0
-    - serializedVersion: 2
-      time: 0.050955415
-      value: 1.1
-      inSlope: -1.2270529
-      outSlope: -1.2270529
-      tangentMode: 0
-    - serializedVersion: 2
-      time: 0.10191083
-      value: 1.0812492
-      inSlope: -0.30676323
-      outSlope: -0.30676323
-      tangentMode: 0
-    - serializedVersion: 2
-      time: 0.20382166
-      value: 1.0656242
-      inSlope: -0.07669081
-      outSlope: -0.07669081
-      tangentMode: 0
-    - serializedVersion: 2
-      time: 0.40764332
-      value: 1.0578117
-      inSlope: -0.019172702
-      outSlope: -0.019172702
-      tangentMode: 0
-    - serializedVersion: 2
-      time: 0.81528664
-      value: 1.0539055
-      inSlope: -0.0047931755
-      outSlope: -0.0047931755
+      time: 0.5148932
+      value: 0.16474915
+      inSlope: -0.14435917
+      outSlope: -0.14435917
       tangentMode: 0
     - serializedVersion: 2
       time: 1
-      value: 1.0531839
-      inSlope: -0.0031859847
-      outSlope: -0.0031859847
+      value: 0.10385521
+      inSlope: -0.10832343
+      outSlope: -0.10832343
       tangentMode: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
@@ -483,7 +455,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enableSpatialization: 1
-  gain: 0
+  gain: 1
   useInvSqr: 0
   near: 1
   far: 314
@@ -513,6 +485,27 @@ SphereCollider:
   serializedVersion: 2
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!169 &169780660307780090
+AudioLowPassFilter:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1380364652267520}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_LowpassResonanceQ: 1
+  lowpassLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 2
+      time: 0
+      value: 0.08490909
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 0
 --- !u!222 &222327544967216630
 CanvasRenderer:
   m_ObjectHideFlags: 1

@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Audio;
 
 public class BallScript : MonoBehaviour
 {
     public float inputSpeed;
+    public AudioMixerSnapshot farSideSnap;
+    public AudioMixerSnapshot closeSideSnap;
+
     private Rigidbody rb;
     private static AudioSource ballSoundSource;
     private AudioSource paddleSound;
@@ -91,6 +95,16 @@ public class BallScript : MonoBehaviour
             Destroy(this);
             Destroy(GetComponent<Rigidbody>());
         }
+
+        if(rb.position.z > 0)
+        {
+            farSideSnap.TransitionTo(0.1f);
+        }
+        else
+        {
+            closeSideSnap.TransitionTo(0.1f);
+        }
+
     }
 
     public void BallSet()
