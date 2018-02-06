@@ -40,17 +40,27 @@ public class PaddleScript : MonoBehaviour
         {
             Time.timeScale = 1;
         }
-        //MoveBat(BodySourceView.spineMidPosition, BodySourceView.handPosition);
         CameraSpacePoint midSpinePosition = BodySourceView.baseKinectPosition;
         CameraSpacePoint handPosition = BodySourceView.handPosition;
+        float centerXPoint = midSpinePosition.X;
 
-        CameraSpacePoint sholderPos = BodySourceView.shoulderPosition;
-        float centerXPoint = midSpinePosition.X + (Math.Abs(sholderPos.X - midSpinePosition.X) / 2) ;
+        //Add buffer to be able to reach the opposite side easier.
+        //Not sure why leftyMode needs to be more of a buffer.
+        if (BodySourceView.leftyMode)
+        {
+            centerXPoint -= 0.15f;
+        }
+        else
+        {
+            centerXPoint += 0.06f;
+        }
 
         //Calculate the position of the paddle based on the distance from the mid spine join
         float xPos = (centerXPoint - handPosition.X) * 100,
               zPos = (midSpinePosition.Z - handPosition.Z) * 100;
         float yPos = transform.position.y;
+
+        //If screen press, lift bat
         if (ScreenPressDown)
         {
             yPos = 20;
@@ -60,6 +70,7 @@ public class PaddleScript : MonoBehaviour
             yPos = 5f;
         }
 
+        //Smoothing applied to slow down bat so it doesn't phase through ball
         Vector3 newPosition = new Vector3(-xPos, yPos, (zPos - 142f));
         rb.MovePosition(Vector3.Lerp(rb.position, newPosition, Time.fixedDeltaTime * 30));
 

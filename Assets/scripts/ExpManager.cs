@@ -17,6 +17,7 @@ public class ExpManager : MonoBehaviour
     public Button saveExpButton;
     public Dropdown hitResultDropdown;
     public Button MissedButton;
+    public Dropdown ballSpeedDropdown;
 
     private GameObject _currentBall;
     private Dictionary<int, BallPath> ballPositions= new Dictionary<int, BallPath>();
@@ -88,8 +89,22 @@ public class ExpManager : MonoBehaviour
         _currentBall = Instantiate(ballObject, ballPositions[_currBallType].Origin, new Quaternion());
         Rigidbody rb = _currentBall.GetComponent<Rigidbody>();
         _currentBall.GetComponents<AudioSource>()[1].Play();
-        //currBallSpeed = Random.Range(75, 250); //Used for random ball speeds
-        _currBallSpeed = 75;
+        if(ballSpeedDropdown.value == 0) //Slow
+        {
+            _currBallSpeed = 75;
+        }
+        else if(ballSpeedDropdown.value == 1) //Medium
+        {
+            _currBallSpeed = 125;
+        }
+        else if (ballSpeedDropdown.value == 2) //Fast
+        {
+            _currBallSpeed = 250;
+        }
+        else if(ballSpeedDropdown.value == 3) //Random
+        {
+            _currBallSpeed = Random.Range(75, 250);
+        }
         rb.AddForce(ballPositions[_currBallType].Destination * _currBallSpeed, ForceMode.Acceleration);
     }
 

@@ -12,16 +12,16 @@ public class CameraController : MonoBehaviour
 
     private void Start()
     {
-        startingZPosition = transform.position.z;
+        startingZPosition = -130;
         CameraDeltaZ = 0;
     }
 
     private void FixedUpdate()
     {
         CameraSpacePoint closestZPosition = BodySourceView.closestZPosition;
-        CameraSpacePoint furtherestZPosition = BodySourceView.baseKinectPosition;
+        float furtherestZPosition = BodySourceView.MaxZDistance;
 
-        CameraDeltaZ = (furtherestZPosition.Z - closestZPosition.Z) * 100;
+        CameraDeltaZ = (furtherestZPosition - closestZPosition.Z) * 100;
         //transform.position =
         //    new Vector3(0,
         //        (closestZPosition.Y * 100) + 30.16f,
