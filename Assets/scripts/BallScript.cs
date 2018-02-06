@@ -89,6 +89,12 @@ public class BallScript : MonoBehaviour
         {
             BallSet();
         }
+        else if(GameUtils.playState == GameUtils.GamePlayState.ExpMode)
+        {
+            //Add a speed limit to the ball
+            Vector3 oldVel = rb.velocity;
+            rb.velocity = Vector3.ClampMagnitude(oldVel, maxspeed);
+        }
 
         if (GoalScript.gameOver)
         {
