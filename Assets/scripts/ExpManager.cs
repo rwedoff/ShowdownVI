@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using JetBrains.Annotations;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -15,9 +14,9 @@ public class ExpManager : MonoBehaviour
     public Text ballAndPosText;
     public Button nextBallButton;
     public Button saveExpButton;
-    public Dropdown hitResultDropdown;
     public Button MissedButton;
     public Dropdown ballSpeedDropdown;
+    public GameObject batObj;
 
     private GameObject _currentBall;
     private Dictionary<int, BallPath> ballPositions= new Dictionary<int, BallPath>();
@@ -30,6 +29,8 @@ public class ExpManager : MonoBehaviour
     private float _oldTime;
     private bool _timerStarted;
     private bool _newBallOk;
+    private bool playerReady;
+    private AudioSource batSound;
 
     /// <summary>
     /// AudioSources
@@ -37,30 +38,6 @@ public class ExpManager : MonoBehaviour
     /// </summary>
     private AudioSource[] _audioSources;
 
-    private void ShuffleArray()
-    {
-        List<int> expListLoc = new List<int>();
-        for (int i = 0; i <= 14; i++) //Range of positions
-        {
-            for (int j = 0; j <= 3; j++) //Times per position
-            {
-                expListLoc.Add(i);
-            }
-        }
-        System.Random rng = new System.Random();
-        int n = expListLoc.Count;
-        while (n > 1)
-        {
-            n--;
-            int k = rng.Next(n + 1);
-            int value = expListLoc[k];
-            expListLoc[k] = expListLoc[n];
-            expListLoc[n] = value;
-        }
-        _expList = expListLoc.GetEnumerator();
-    }
-
-    [UsedImplicitly]
     private void Start()
     {
         GameUtils.playState = GameUtils.GamePlayState.ExpMode;
@@ -74,6 +51,42 @@ public class ExpManager : MonoBehaviour
         saveExpButton.onClick.AddListener(SaveCsv);
         MissedButton.onClick.AddListener(() => StartNextBall(false));
         _audioSources = GetComponents<AudioSource>();
+        BallScript.GameInit = false;
+        playerReady = false;
+        batSound = batObj.GetComponent<AudioSource>();
+        batSound.mute = true;
+    }
+
+    private void Update()
+    {
+        GameUtils.playState = GameUtils.GamePlayState.ExpMode;
+
+        //Check ball state
+        if (!playerReady)
+        {
+            batSound.mute = true;
+            if (JoyconController.Shoulder2Pressed)
+            {
+                playerReady = true;
+                Debug.Log("Player Ready");
+            }
+        }
+        else
+        {
+            Time.timeScale = 1;
+            BallScript.GameInit = false;
+            batSound.mute = false;
+        }
+
+        if (_timerStarted)
+        {
+            if (_currBallNumber == -1 || Time.time > _oldTime + 3)
+            {
+                _timerStarted = false;
+                _newBallOk = true;
+            }
+        }
+
     }
 
     private void SpawnBall()
@@ -88,7 +101,10 @@ public class ExpManager : MonoBehaviour
         }
         _currentBall = Instantiate(ballObject, ballPositions[_currBallType].Origin, new Quaternion());
         Rigidbody rb = _currentBall.GetComponent<Rigidbody>();
+
+        //Click sound
         _currentBall.GetComponents<AudioSource>()[1].Play();
+
         if(ballSpeedDropdown.value == 0) //Slow
         {
             _currBallSpeed = 75;
@@ -192,45 +208,37 @@ public class ExpManager : MonoBehaviour
         });
     }
 
-    [UsedImplicitly]
-    private void Update()
-    {
-        GameUtils.playState = GameUtils.GamePlayState.ExpMode;
-
-        if (_timerStarted)
-        {
-            if (_currBallNumber == -1 || Time.time > _oldTime + 3)
-            {
-                _timerStarted = false;
-                _newBallOk = true;
-            }
-        }
-    }
-
     private void StartNextBall(bool hit)
     {
-        if (_newBallOk)
+        if (playerReady)
         {
-            _newBallOk = false;
-            Debug.Log("Sending Ball");
-            _timerStarted = true;
-            _oldTime = Time.time;
-            if (_currBallNumber != -1)
-                CollectExpData();
-            Destroy(_currentBall);
-            if (_currBallNumber != -1)
+            if (_newBallOk)
             {
-                StartCoroutine(hit ? NextBallHit() : NextBallMissed());
+                _newBallOk = false;
+                Debug.Log("Sending Ball");
+                _timerStarted = true;
+                _oldTime = Time.time;
+                if (_currBallNumber != -1)
+                    CollectExpData(hit);
+                Destroy(_currentBall);
+                if (_currBallNumber != -1)
+                {
+                    StartCoroutine(hit ? NextBallHit() : NextBallMissed());
+                }
+                else
+                {
+                    StartCoroutine(NextBallComing());
+                }
             }
-            else
-            {
-                StartCoroutine(NextBallComing());
-            }
+        }
+        else
+        {
+            Debug.LogWarning("Player Not Ready: Need to press trigger");
         }
 
     }
     
-    private void CollectExpData()
+    private void CollectExpData(bool hit)
     {
         expResults.Add(new ExpData()
         {
@@ -238,14 +246,13 @@ public class ExpManager : MonoBehaviour
             BallNumber = _currBallNumber,
             BallType = _currBallType,
             BallSpeed = _currBallSpeed,
-            BallResult = hitResultDropdown.value
+            BallResult = hit ? 0 : 1
         });
-        hitResultDropdown.value = 0;
     }
 
     private void SaveCsv()
     {
-        CollectExpData();
+        CollectExpData(true);
         int option = EditorUtility.DisplayDialogComplex("Finish Experiment",
             "Are you sure you want to finish this experiment?",
             "Save",
@@ -316,6 +323,29 @@ public class ExpManager : MonoBehaviour
         AudioSource aud = NumberSpeech.PlayAudio(19);
         yield return new WaitForSeconds(aud.clip.length + 0.2f);
         SpawnBall();
+    }
+
+    private void ShuffleArray()
+    {
+        List<int> expListLoc = new List<int>();
+        for (int i = 0; i <= 14; i++) //Range of positions
+        {
+            for (int j = 0; j <= 3; j++) //Times per position
+            {
+                expListLoc.Add(i);
+            }
+        }
+        System.Random rng = new System.Random();
+        int n = expListLoc.Count;
+        while (n > 1)
+        {
+            n--;
+            int k = rng.Next(n + 1);
+            int value = expListLoc[k];
+            expListLoc[k] = expListLoc[n];
+            expListLoc[n] = value;
+        }
+        _expList = expListLoc.GetEnumerator();
     }
 }
 

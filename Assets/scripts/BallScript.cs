@@ -6,6 +6,7 @@ using UnityEngine.Audio;
 public class BallScript : MonoBehaviour
 {
     public float inputSpeed;
+    public static bool GameInit;
     public AudioMixerSnapshot farSideSnap;
     public AudioMixerSnapshot closeSideSnap;
 
@@ -21,7 +22,6 @@ public class BallScript : MonoBehaviour
     private bool timerStarted;
     private GameObject bat;
     private bool aiSettingBall = false;
-    private bool gameInit;
 
     private void Start()
     {
@@ -34,7 +34,6 @@ public class BallScript : MonoBehaviour
         paddleSound = audioSources[1];
         outofTableSound = audioSources[2];
         wallAudioSource = audioSources[3];
-        gameInit = true;
     }
 
     //Used for physics
@@ -50,28 +49,26 @@ public class BallScript : MonoBehaviour
         //END DEBUG
 
         //Check ball state
-        if (gameInit)
+        if (GameInit)
         {
             //DEBUG
             //GameUtils.playState = GameUtils.GamePlayState.InPlay;
             //END DEBUG
-            GameUtils.PlayerServe = true;
-            gameInit = false;
-            Time.timeScale = 1;
             return;
         }
         else if(GameUtils.playState == GameUtils.GamePlayState.SettingBall)
         {
             SettingBall();
         }
-        else if(GameUtils.playState == GameUtils.GamePlayState.InPlay)
+        else if(GameUtils.playState == GameUtils.GamePlayState.InPlay ||
+            GameUtils.playState == GameUtils.GamePlayState.ExpMode)
         {
             StartBallSound();
             //Change rolling sounds based on speed of ball
             //ballSoundSource.volume = GameUtils.Scale(0, maxspeed, 0, 1, Math.Abs(rb.velocity.magnitude));
 
             //Change and limit pitch change on ball
-            ballSoundSource.pitch = GameUtils.Scale(0, maxspeed, 0.25f, 1f, Math.Abs(rb.velocity.magnitude));
+            ballSoundSource.pitch = GameUtils.Scale(0, maxspeed, 0.8f, 1.25f, Math.Abs(rb.velocity.magnitude));
 
             //Change distance based on camera position
             ballSoundSource.maxDistance = 130 - CameraController.CameraDeltaZ;
@@ -91,12 +88,6 @@ public class BallScript : MonoBehaviour
         else if(GameUtils.playState == GameUtils.GamePlayState.BallSet)
         {
             BallSet();
-        }
-        else if(GameUtils.playState == GameUtils.GamePlayState.ExpMode)
-        {
-            //Add a speed limit to the ball
-            Vector3 oldVel = rb.velocity;
-            rb.velocity = Vector3.ClampMagnitude(oldVel, maxspeed);
         }
 
         if (GoalScript.gameOver)
@@ -255,7 +246,7 @@ public class BallScript : MonoBehaviour
                 float rumbleAmp = GameUtils.Scale(0, 243382, 0.3f, 0.9f, impulse);
                 JoyconController.RumbleJoycon(160, 320, rumbleAmp, 200);
             }
-            paddleSound.volume = GameUtils.Scale(0, 243382, 0.1f, 1, impulse);
+            paddleSound.volume = GameUtils.Scale(0, 243382, 0.1f, 0.5f, impulse);
             paddleSound.Play();
         }
         if(collision.gameObject.tag == "Wall" && !wallAudioSource.isPlaying)

@@ -27,6 +27,7 @@ public class BodySourceView : MonoBehaviour
     public static float MaxZDistance;
 
     public static Quaternion faceRotation;
+    public static bool BodyFound;
 
     public void Start()
     {
@@ -59,6 +60,7 @@ public class BodySourceView : MonoBehaviour
         Body[] data = _BodyManager.GetData();
         if (data == null)
         {
+            BodyFound = false;
             return;
         }
 
@@ -105,6 +107,7 @@ public class BodySourceView : MonoBehaviour
 
             if (body.IsTracked)
             {
+                BodyFound = true;
                 if (!_Bodies.ContainsKey(body.TrackingId))
                 {
                     _Bodies[body.TrackingId] = CreateBodyObject(body.TrackingId);

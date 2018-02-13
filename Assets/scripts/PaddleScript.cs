@@ -25,17 +25,6 @@ public class PaddleScript : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        //if (PhoneServer.Init)
-        //{
-        //    //DEBUG ONLY
-        //    //Time.timeScale = 1;
-        //    //END DEBUG
-        //    Time.timeScale = 0;
-        //}
-        //else
-        //{
-        //    Time.timeScale = 1;
-        //}
         CameraSpacePoint midSpinePosition = BodySourceView.baseKinectPosition;
         CameraSpacePoint handPosition = BodySourceView.handPosition;
         float centerXPoint = midSpinePosition.X;
@@ -132,7 +121,7 @@ public class PaddleScript : MonoBehaviour
     {
         if(other.gameObject.tag == "SouthGoal")
         {
-            JoyconController.RumbleJoycon(80, 200, 0.5f);
+            JoyconController.RumbleJoycon(100, 400, 0.2f);
         }
     }
     private void OnTriggerExit(Collider other)
