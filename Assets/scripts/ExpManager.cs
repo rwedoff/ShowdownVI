@@ -23,7 +23,7 @@ public class ExpManager : MonoBehaviour
     private Dictionary<int, BallPath> ballPositions= new Dictionary<int, BallPath>();
     private IEnumerator<int> _expList;
     private int _currBallNumber;
-    private string _participantName;
+    private string _participantName= "";
     private List<ExpData> expResults = new List<ExpData>();
     private int _currBallType;
     private int _currBallSpeed;

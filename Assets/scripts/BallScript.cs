@@ -21,6 +21,7 @@ public class BallScript : MonoBehaviour
     private bool timerStarted;
     private GameObject bat;
     private bool aiSettingBall = false;
+    private bool gameInit;
 
     private void Start()
     {
@@ -33,28 +34,30 @@ public class BallScript : MonoBehaviour
         paddleSound = audioSources[1];
         outofTableSound = audioSources[2];
         wallAudioSource = audioSources[3];
+        gameInit = true;
     }
 
     //Used for physics
+    //Game logic placed in here...bad idea.
     private void FixedUpdate()
     {
         //DEBUG ONLY
-
         //Manual Keyboard Control of Ball
         float movehorizontal = Input.GetAxis("Horizontal");
         float movevertical = Input.GetAxis("Vertical");
         Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
         rb.AddForce(movement * inputSpeed);
-
         //END DEBUG
 
         //Check ball state
-        if (PhoneServer.Init)
+        if (gameInit)
         {
             //DEBUG
             //GameUtils.playState = GameUtils.GamePlayState.InPlay;
             //END DEBUG
             GameUtils.PlayerServe = true;
+            gameInit = false;
+            Time.timeScale = 1;
             return;
         }
         else if(GameUtils.playState == GameUtils.GamePlayState.SettingBall)
@@ -77,7 +80,7 @@ public class BallScript : MonoBehaviour
             Vector3 oldVel = rb.velocity;
             rb.velocity = Vector3.ClampMagnitude(oldVel, maxspeed);
 
-            //DEBUG ONLY uncomment this
+            //DEBUG ONLY uncomment this in Prod
             if (GameUtils.ballSpeedPointsEnabled)
             {
                 BallSpeedPoints();
@@ -102,6 +105,7 @@ public class BallScript : MonoBehaviour
             Destroy(GetComponent<Rigidbody>());
         }
 
+        //Dynamic LowPass Audio filter snapshot changingqq
         if(rb.position.z > 0)
         {
             farSideSnap.TransitionTo(0.1f);
@@ -161,7 +165,7 @@ public class BallScript : MonoBehaviour
     private void SetBallForServe()
     {
         var paddlePos = bat.transform.position;
-        if (PaddleScript.ScreenPressDown)
+        if (JoyconController.Shoulder2Pressed || PaddleScript.ScreenPressDown)
         {
             if (paddlePos.x < 50 && paddlePos.x > -50 && paddlePos.z > -130)
             {
@@ -244,11 +248,15 @@ public class BallScript : MonoBehaviour
         }
         if(collision.gameObject.tag == "Player"  || collision.gameObject.tag == "oppo" && GameUtils.playState != GameUtils.GamePlayState.SettingBall)
         {
-            paddleSound.Play();
+            float impulse = collision.impulse.sqrMagnitude;
             if(collision.gameObject.tag == "Player")
             {
-                PhoneServer.SendMessageToPhone("ball;");
+                //PhoneServer.SendMessageToPhone("ball;");
+                float rumbleAmp = GameUtils.Scale(0, 243382, 0.3f, 0.9f, impulse);
+                JoyconController.RumbleJoycon(160, 320, rumbleAmp, 200);
             }
+            paddleSound.volume = GameUtils.Scale(0, 243382, 0.1f, 1, impulse);
+            paddleSound.Play();
         }
         if(collision.gameObject.tag == "Wall" && !wallAudioSource.isPlaying)
         {

@@ -64,15 +64,9 @@ public class BodySourceView : MonoBehaviour
 
         FaceFrameResult[] faceData = _BodyManager.GetFaceData();
 
-
-        //TODO what happens if there is more than one face?
-
         if (faceData[0] != null)
         {
-            if (faceData[0].FaceRotationQuaternion != null)
-            {
-                faceRotation = new Quaternion(faceData[0].FaceRotationQuaternion.X, faceData[0].FaceRotationQuaternion.Y, faceData[0].FaceRotationQuaternion.Z, faceData[0].FaceRotationQuaternion.W);
-            }
+            faceRotation = new Quaternion(faceData[0].FaceRotationQuaternion.X, faceData[0].FaceRotationQuaternion.Y, faceData[0].FaceRotationQuaternion.Z, faceData[0].FaceRotationQuaternion.W);
         }
 
 

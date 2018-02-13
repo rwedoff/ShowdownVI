@@ -131,18 +131,12 @@
       <Project>{0BD5A291-87B0-2AFB-B60F-DE1C8BA8527F}</Project>
       <Name>ShowdownVI</Name>
     </ProjectReference>
-    <ProjectReference Include="ShowdownVI.unityproj">
-      <Project>{0BD5A291-87B0-2AFB-B60F-DE1C8BA8527F}</Project>
-      <Name>ShowdownVI</Name>
-    </ProjectReference>
     <ProjectReference Include="ShowdownVI.Editor.Plugins.csproj">
       <Project>{1DA821CD-F463-C135-4378-B36B66DF2E1C}</Project>
       <Name>ShowdownVI.Editor.Plugins</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\OSPNative\editor\ONSPAudioSourceEditor.cs" />
-    <Compile Include="Assets\OSPNative\editor\ONSPReflectionCustomGUI.cs" />
     <Compile Include="Assets\OVRAudioManager\Scripts\Audio\Editor\AudioImportPostProcessor.cs" />
     <Compile Include="Assets\OVRAudioManager\Scripts\Audio\Editor\AudioManagerInspector.cs" />
     <Compile Include="Assets\OVRAudioManager\Scripts\Audio\Editor\MinMaxPropertyDrawer.cs" />

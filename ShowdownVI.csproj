@@ -87,25 +87,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\OSPNative\scenes\Standard Assets\Character Controllers\Sources\Scripts\MouseLook.cs" />
-    <Compile Include="Assets\OSPNative\scripts\helpers\ONSPReflectionZone.cs" />
-    <Compile Include="Assets\OSPNative\scripts\ONSPAmbisonicsNative.cs" />
-    <Compile Include="Assets\OSPNative\scripts\ONSPAudioSource.cs" />
-    <Compile Include="Assets\OSPNative\scripts\ONSPProfiler.cs" />
-    <Compile Include="Assets\OSPNative\scripts\ONSPVersion.cs" />
-    <Compile Include="Assets\OVRAudioManager\Scripts\Audio\AmbienceEmitter.cs" />
-    <Compile Include="Assets\OVRAudioManager\Scripts\Audio\AudioManager.cs" />
-    <Compile Include="Assets\OVRAudioManager\Scripts\Audio\AudioManager_Sound.cs" />
-    <Compile Include="Assets\OVRAudioManager\Scripts\Audio\MinMaxAttribute.cs" />
-    <Compile Include="Assets\OVRAudioManager\Scripts\Audio\SoundEmitter.cs" />
-    <Compile Include="Assets\OVRAudioManager\Scripts\Audio\SoundFX.cs" />
-    <Compile Include="Assets\OVRAudioManager\Scripts\Audio\SoundFXRef.cs" />
-    <Compile Include="Assets\OVRAudioManager\Scripts\Utils\FastList.cs" />
-    <Compile Include="Assets\OVRAudioManager\Scripts\Utils\InspectorNoteAttribute.cs" />
+    <Compile Include="Assets\JoyconDemo.cs" />
+    <Compile Include="Assets\JoyconLib_scripts\HIDapi.cs" />
+    <Compile Include="Assets\JoyconLib_scripts\Joycon.cs" />
+    <Compile Include="Assets\JoyconLib_scripts\JoyconManager.cs" />
     <Compile Include="Assets\scripts\AIColliderScript.cs" />
     <Compile Include="Assets\scripts\BackButton.cs" />
     <Compile Include="Assets\scripts\BallScript.cs" />
-    <Compile Include="Assets\scripts\BallScriptTwoTone.cs" />
     <Compile Include="Assets\scripts\BatAI.cs" />
     <Compile Include="Assets\scripts\BodySourceManager.cs" />
     <Compile Include="Assets\scripts\BodySourceView.cs" />
@@ -113,6 +101,7 @@
     <Compile Include="Assets\scripts\ExpManager.cs" />
     <Compile Include="Assets\scripts\GameUtils.cs" />
     <Compile Include="Assets\scripts\GoalScript.cs" />
+    <Compile Include="Assets\scripts\JoyconController.cs" />
     <Compile Include="Assets\scripts\MenuScript.cs" />
     <Compile Include="Assets\scripts\MenuSpeech.cs" />
     <Compile Include="Assets\scripts\NumberSpeech.cs" />

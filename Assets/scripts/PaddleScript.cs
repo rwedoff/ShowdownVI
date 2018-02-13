@@ -4,42 +4,38 @@ using Windows.Kinect;
 
 public class PaddleScript : MonoBehaviour
 {
-    private Rigidbody rb;
-
-    private bool batOutofBounds;
-
-    private UnityEngine.AudioSource wallCollideAudio;
-    //private UnityEngine.AudioSource batDroneAudio;
-
     public static bool ScreenPressDown { get; internal set; }
 
+    private Rigidbody rb;
+    private UnityEngine.AudioSource wallCollideAudio;
     private float oldTime;
-    private float timerInterval;
+    private float halfBatLen;
+    private float halfBatThick;
 
     // Use this for initialization
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         wallCollideAudio = GetComponents<UnityEngine.AudioSource>()[0];
-       // batDroneAudio = GetComponents<UnityEngine.AudioSource>()[1];
-        batOutofBounds = true;
         wallCollideAudio.loop = true;
+        halfBatLen = transform.localScale.x / 2;
+        halfBatThick = transform.localScale.z / 2;
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        if (PhoneServer.Init)
-        {
-            //DEBUG ONLY
-            //Time.timeScale = 1;
-            //END DEBUG
-            Time.timeScale = 0;
-        }
-        else
-        {
-            Time.timeScale = 1;
-        }
+        //if (PhoneServer.Init)
+        //{
+        //    //DEBUG ONLY
+        //    //Time.timeScale = 1;
+        //    //END DEBUG
+        //    Time.timeScale = 0;
+        //}
+        //else
+        //{
+        //    Time.timeScale = 1;
+        //}
         CameraSpacePoint midSpinePosition = BodySourceView.baseKinectPosition;
         CameraSpacePoint handPosition = BodySourceView.handPosition;
         float centerXPoint = midSpinePosition.X;
@@ -57,11 +53,11 @@ public class PaddleScript : MonoBehaviour
 
         //Calculate the position of the paddle based on the distance from the mid spine join
         float xPos = (centerXPoint - handPosition.X) * 100,
-              zPos = (midSpinePosition.Z - handPosition.Z) * 100;
-        float yPos = transform.position.y;
+              zPos = (midSpinePosition.Z - handPosition.Z) * 100,
+              yPos = transform.position.y;
 
         //If screen press, lift bat
-        if (ScreenPressDown)
+        if (JoyconController.Shoulder2Pressed || ScreenPressDown)
         {
             yPos = 20;
         }
@@ -88,53 +84,60 @@ public class PaddleScript : MonoBehaviour
 
     private void CheckBatInGame()
     {
-        batOutofBounds = false;
-        timerInterval = 5;
-        if ((transform.position.x > 50 || transform.position.x < -50 || transform.position.z < -145))
+        float outOfBoundsBy = 0;
+        float xSide = 50 - halfBatLen;
+        float zSide = 130 - halfBatThick;
+        if ((transform.position.x > xSide || transform.position.x < -xSide || transform.position.z < -zSide))
         {
-            float outOfBoundsBy = 0;
-            if(Math.Abs(transform.position.x) > 50)
+            
+            if(Math.Abs(transform.position.x) > xSide)
             {
-                outOfBoundsBy = Math.Abs(transform.position.x) - 50;
+                outOfBoundsBy = Math.Abs(transform.position.x) - xSide;
             }
-            else if(transform.position.z < -145)
+            else if(transform.position.z < -zSide)
             {
-                outOfBoundsBy = Math.Abs(transform.position.z) -145;
-            }
-
-            if (outOfBoundsBy < 10)
-            {
-                timerInterval = 0.25f;
-            }
-            else if (outOfBoundsBy < 30)
-            {
-                timerInterval = 0.2f;
-            }
-            else if(outOfBoundsBy < 50 )
-            {
-                timerInterval = 0.15f;
-            }
-            else
-            {
-                timerInterval = 0f;
-            }
-            batOutofBounds = true;
-
-            if(Time.time > oldTime + timerInterval)
-            {
-                PhoneServer.SendMessageToPhone("wall;");
-                oldTime = Time.time;
+                outOfBoundsBy = Math.Abs(transform.position.z) -zSide;
             }
         }
-        if (!batOutofBounds && wallCollideAudio.isPlaying)
+
+        if (outOfBoundsBy == 0 && wallCollideAudio.isPlaying)
         {
             wallCollideAudio.Pause();
-            oldTime = Time.time;
+            JoyconController.RumbleJoycon(0, 0, 0);
         }
-        else if (!wallCollideAudio.isPlaying && batOutofBounds)
+        else if (!wallCollideAudio.isPlaying && outOfBoundsBy != 0)
         {
             wallCollideAudio.Play();
         }
+        if(outOfBoundsBy != 0)
+        {
+            float rumbleAmp = 0;
+            if (outOfBoundsBy < 10)
+            {
+                rumbleAmp = 0.4f;
+            }
+            else if (outOfBoundsBy < 30)
+            {
+                rumbleAmp = 0.7f;
+            }
+            else
+            {
+                rumbleAmp = 0.9f;
+            }
+            JoyconController.RumbleJoycon(90, 270, rumbleAmp);
+            wallCollideAudio.volume = GameUtils.Scale(0, 45, 0.1f, 1, outOfBoundsBy);
+        }
+    }
+    private void OnTriggerStay(Collider other)
+    {
+        if(other.gameObject.tag == "SouthGoal")
+        {
+            JoyconController.RumbleJoycon(80, 200, 0.5f);
+        }
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        JoyconController.RumbleJoycon(0, 0, 0);
     }
 
     /// <summary>
@@ -144,35 +147,30 @@ public class PaddleScript : MonoBehaviour
     /// <param name="handTipPos">Distance of the tip of the hand from the Kinect</param>
     private void RotateBat(CameraSpacePoint handBasePos, CameraSpacePoint handTipPos)
     {
-        float o = handBasePos.Z - handTipPos.Z;
-        float a = handBasePos.X - handTipPos.X;
-        float angle = Mathf.Rad2Deg * Mathf.Atan2(o, a);
+        float o = handBasePos.Z - handTipPos.Z,
+              a = handBasePos.X - handTipPos.X,
+              angle = Mathf.Rad2Deg * Mathf.Atan2(o, a);
 
         Quaternion newRotation = Quaternion.AngleAxis(0, Vector3.up);
 
         if (-35 <= angle && angle < 35)
         {
-            //rb.MoveRotation(Quaternion.Euler(0, 0, 0));
             newRotation = Quaternion.AngleAxis(0, Vector3.up);
         }
         else if (angle >= 35 && angle < 90)
         {
-            //rb.MoveRotation(Quaternion.Euler(0, 45, 0));
             newRotation = Quaternion.AngleAxis(45, Vector3.up);
         }
         else if (angle >= 90 && angle < 135)
         {
-            //rb.MoveRotation(Quaternion.Euler(0, 135, 0));
             newRotation = Quaternion.AngleAxis(135, Vector3.up);
         }
         else if (angle >= 135)
         {
-            //rb.MoveRotation(Quaternion.Euler(0, 180, 0));
             newRotation = Quaternion.AngleAxis(180, Vector3.up);
         }
         else if (angle < -35)
         {
-            //rb.MoveRotation(Quaternion.Euler(0, -45, 0));
             newRotation = Quaternion.AngleAxis(-45, Vector3.up);
         }
         rb.rotation = Quaternion.Slerp(transform.rotation, newRotation, .05f);

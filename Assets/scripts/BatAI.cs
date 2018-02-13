@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class BatAI : MonoBehaviour {
@@ -8,7 +6,6 @@ public class BatAI : MonoBehaviour {
     public static float aiSpeed;
     public GameObject ball;
     private Rigidbody rb;
-    private bool settingBallTriggered;
 
     private Vector3 hitPosition;
     public enum BatAIState
@@ -27,7 +24,6 @@ public class BatAI : MonoBehaviour {
 
     void Start () {
         rb = GetComponent<Rigidbody>();
-        settingBallTriggered = false;
         batAIState = BatAIState.hittingBall;
         GameUtils.playState = GameUtils.GamePlayState.SettingBall;
         oppoGoalTransform = GameObject.FindGameObjectWithTag("SouthGoal").transform;
@@ -43,7 +39,7 @@ public class BatAI : MonoBehaviour {
         }
         else if (GameUtils.playState == GameUtils.GamePlayState.BallSet)
         {
-            hitPosition = hitPosition = GameObject.FindGameObjectWithTag("Ball").transform.position;
+            hitPosition = GameObject.FindGameObjectWithTag("Ball").transform.position;
         }
         else if (GameUtils.playState == GameUtils.GamePlayState.InPlay)
         {
@@ -60,7 +56,6 @@ public class BatAI : MonoBehaviour {
                 hitPosition = GameObject.FindGameObjectWithTag("Ball").transform.position;
                 batAIState = BatAIState.hittingBall;
             }
-            settingBallTriggered = false;
         }
 
     }

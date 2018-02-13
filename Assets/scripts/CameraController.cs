@@ -33,15 +33,11 @@ public class CameraController : MonoBehaviour
         
 
         Quaternion fr = BodySourceView.faceRotation;
-        if (fr != null)
-        {
+        float yAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, -fr.eulerAngles.y, ref yVelocity, smooth);
+        float xAngle = Mathf.SmoothDampAngle(transform.eulerAngles.x, -fr.eulerAngles.x, ref xVelocity, smooth);
+        float zAngle = Mathf.SmoothDampAngle(transform.eulerAngles.z, fr.eulerAngles.z, ref zVelocity, smooth);
 
-            float yAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, -fr.eulerAngles.y, ref yVelocity, smooth);
-            float xAngle = Mathf.SmoothDampAngle(transform.eulerAngles.x, -fr.eulerAngles.x, ref xVelocity, smooth);
-            float zAngle = Mathf.SmoothDampAngle(transform.eulerAngles.z, fr.eulerAngles.z, ref zVelocity, smooth);
-
-            transform.localRotation = Quaternion.Euler(xAngle, yAngle, zAngle);
-        }
+        transform.localRotation = Quaternion.Euler(xAngle, yAngle, zAngle);
 
     }
 
