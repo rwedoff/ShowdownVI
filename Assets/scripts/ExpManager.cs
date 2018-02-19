@@ -48,13 +48,14 @@ public class ExpManager : MonoBehaviour
         CreateBallPosition();
         ShuffleArray();
         nextBallButton.onClick.AddListener(() => StartNextBall(true));
-        saveExpButton.onClick.AddListener(SaveCsv);
+        saveExpButton.onClick.AddListener(FinishExp);
         MissedButton.onClick.AddListener(() => StartNextBall(false));
         _audioSources = GetComponents<AudioSource>();
         BallScript.GameInit = false;
         playerReady = false;
         batSound = batObj.GetComponent<AudioSource>();
         batSound.mute = true;
+        StartCoroutine(GameUtils.PlayIntroMusic());
     }
 
     private void Update()
@@ -210,6 +211,9 @@ public class ExpManager : MonoBehaviour
 
     private void StartNextBall(bool hit)
     {
+        //DEBUG ONLY
+        //if (true) {
+        //END DEBUG
         if (playerReady)
         {
             if (_newBallOk)
@@ -250,9 +254,16 @@ public class ExpManager : MonoBehaviour
         });
     }
 
-    private void SaveCsv()
+    private void FinishExp()
     {
         CollectExpData(true);
+        StartCoroutine(SaveCSV());
+    }
+
+    private IEnumerator SaveCSV()
+    {
+        NumberSpeech.PlayAudio("thanks");
+        yield return new WaitForSeconds(2);
         int option = EditorUtility.DisplayDialogComplex("Finish Experiment",
             "Are you sure you want to finish this experiment?",
             "Save",
@@ -320,7 +331,7 @@ public class ExpManager : MonoBehaviour
 
     private IEnumerator NextBallComing()
     {
-        AudioSource aud = NumberSpeech.PlayAudio(19);
+        AudioSource aud = NumberSpeech.PlayAudio("nextball");
         yield return new WaitForSeconds(aud.clip.length + 0.2f);
         SpawnBall();
     }

@@ -16,6 +16,7 @@ public class SinglePManager : MonoBehaviour {
         batSound = BatObj.GetComponent<AudioSource>();
         ballSound.mute = true;
         batSound.mute = true;
+        StartCoroutine(GameUtils.PlayIntroMusic());
     }
 
     // Update is called once per frame
@@ -23,6 +24,9 @@ public class SinglePManager : MonoBehaviour {
         //Check ball state
         if (!gameInit)
         {
+            //Debug ONLY
+            //GameUtils.playState = GameUtils.GamePlayState.InPlay;
+            //END DEBUG
             return;
         }
 

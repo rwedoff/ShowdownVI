@@ -29,8 +29,6 @@ GameObject:
   - component: {fileID: 82957975735786732}
   - component: {fileID: 82707606075890980}
   - component: {fileID: 114590939073024476}
-  - component: {fileID: 114087058897266306}
-  - component: {fileID: 169780660307780090}
   m_Layer: 0
   m_Name: Ball
   m_TagString: Ball
@@ -192,10 +190,10 @@ AudioSource:
   SpatializePostEffects: 1
   Priority: 64
   DopplerLevel: 0.83
-  MinDistance: 34
+  MinDistance: 1
   MaxDistance: 314
   Pan2D: 0
-  rolloffMode: 0
+  rolloffMode: 1
   BypassEffects: 0
   BypassListenerEffects: 0
   BypassReverbZones: 1
@@ -299,7 +297,7 @@ AudioSource:
   MinDistance: 1
   MaxDistance: 314
   Pan2D: 0
-  rolloffMode: 2
+  rolloffMode: 1
   BypassEffects: 0
   BypassListenerEffects: 0
   BypassReverbZones: 0
@@ -443,24 +441,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 0
---- !u!114 &114087058897266306
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1380364652267520}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e503ea6418d27594caa33b93cac1b06a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  enableSpatialization: 1
-  gain: 1
-  useInvSqr: 0
-  near: 1
-  far: 314
-  volumetricRadius: 0
-  enableRfl: 1
 --- !u!114 &114590939073024476
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -473,6 +453,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   inputSpeed: 75
+  farSideSnap: {fileID: 24500006, guid: ec9122b34bfcdf547bb6f9787a067d3d, type: 2}
+  closeSideSnap: {fileID: 24500006, guid: ec9122b34bfcdf547bb6f9787a067d3d, type: 2}
 --- !u!135 &135446096326937828
 SphereCollider:
   m_ObjectHideFlags: 1
@@ -485,27 +467,6 @@ SphereCollider:
   serializedVersion: 2
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
---- !u!169 &169780660307780090
-AudioLowPassFilter:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1380364652267520}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_LowpassResonanceQ: 1
-  lowpassLevelCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 2
-      time: 0
-      value: 0.08490909
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 0
 --- !u!222 &222327544967216630
 CanvasRenderer:
   m_ObjectHideFlags: 1

@@ -35,7 +35,7 @@ public class PhoneServer : MonoBehaviour
         wasConnected = false;
         beginAudio = GetComponent<AudioSource>();
         Init = true;
-        GameUtils.tutorialMode = tutorialMode;
+        //GameUtils.tutorialMode = tutorialMode;
         tutorialRan = false;
         if (tutorialMode)
         {
@@ -66,13 +66,13 @@ public class PhoneServer : MonoBehaviour
 
         if (!wasConnected && isConnected && !tutorialMode)
         {
-            NumberSpeech.PlayAudio(14);
+            //NumberSpeech.PlayAudio(14);
             wasConnected = true;
             Time.timeScale = 1;
         }
         if(wasConnected && !isConnected)
         {
-            NumberSpeech.PlayAudio(15);
+            //NumberSpeech.PlayAudio(15);
             wasConnected = false;
             Time.timeScale = 0;
         }
@@ -104,7 +104,7 @@ public class PhoneServer : MonoBehaviour
         {
             resetAvail = false;
             yield return new WaitForSeconds(45);
-            NumberSpeech.PlayAudio(17);
+            //NumberSpeech.PlayAudio(17);
             GameUtils.playState = GameUtils.GamePlayState.SettingBall;
             GameUtils.PlayerServe = true;
             resetAvail = true;
@@ -211,7 +211,7 @@ public class PhoneServer : MonoBehaviour
     private IEnumerator PlayGlobalAudio(int num, int counter)
     {
         yield return new WaitForSeconds(1 + counter);
-        NumberSpeech.PlayAudio(num);
+        //NumberSpeech.PlayAudio(num);
     }
 
     private void ServerUpdate()

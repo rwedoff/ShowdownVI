@@ -176,7 +176,7 @@ public class BallScript : MonoBehaviour
     {
         aiSettingBall = true;
         rb.velocity = new Vector3(0, 0, 0);
-        yield return new WaitForSeconds(5);
+        yield return new WaitForSeconds(6);
         GameUtils.playState = GameUtils.GamePlayState.BallSet;
         StartCoroutine(PauseForBallSetAudio(new Vector3(0, transform.position.y, 100)));
     }
@@ -185,7 +185,7 @@ public class BallScript : MonoBehaviour
     {
         rb.velocity = new Vector3(0, 0, 0);
         rb.position = ballPos;
-        AudioSource setAudioSource = NumberSpeech.PlayAudio(16);
+        AudioSource setAudioSource = NumberSpeech.PlayAudio("readygo");
         yield return new WaitForSeconds(setAudioSource.clip.length - 0.5f); //Give 1 second to move the bat way bc of jitters
         GameUtils.playState = GameUtils.GamePlayState.InPlay; //Maybe remove this
         aiSettingBall = false;
@@ -246,7 +246,7 @@ public class BallScript : MonoBehaviour
                 float rumbleAmp = GameUtils.Scale(0, 243382, 0.3f, 0.9f, impulse);
                 JoyconController.RumbleJoycon(160, 320, rumbleAmp, 200);
             }
-            paddleSound.volume = GameUtils.Scale(0, 243382, 0.1f, 0.5f, impulse);
+            paddleSound.volume = GameUtils.Scale(0, 243382, 0.07f, 0.3f, impulse);
             paddleSound.Play();
         }
         if(collision.gameObject.tag == "Wall" && !wallAudioSource.isPlaying)
