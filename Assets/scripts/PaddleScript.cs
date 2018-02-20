@@ -8,6 +8,10 @@ public class PaddleScript : MonoBehaviour
 
     private Rigidbody rb;
     private UnityEngine.AudioSource wallCollideAudio;
+    private UnityEngine.AudioSource batUpAudio;
+    private UnityEngine.AudioSource batDownAudio;
+    private bool batUpOnce;
+    private bool batDownOnce;
     private float oldTime;
     private float halfBatLen;
     private float halfBatThick;
@@ -16,10 +20,15 @@ public class PaddleScript : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        wallCollideAudio = GetComponents<UnityEngine.AudioSource>()[0];
+        UnityEngine.AudioSource [] auds = GetComponents<UnityEngine.AudioSource>();
+        wallCollideAudio = auds[0];
+        batUpAudio = auds[1];
+        batDownAudio = auds[2];
         wallCollideAudio.loop = true;
         halfBatLen = transform.localScale.x / 2;
         halfBatThick = transform.localScale.z / 2;
+        batUpOnce = false;
+        batDownOnce = false;
     }
 
     // Update is called once per frame
@@ -49,10 +58,22 @@ public class PaddleScript : MonoBehaviour
         if (JoyconController.Shoulder2Pressed || ScreenPressDown)
         {
             yPos = 20;
+            batDownOnce = true;
+            if (batUpOnce)
+            {
+                PlayBatUpAudio();
+                batUpOnce = false;
+            }
         }
         else
         {
             yPos = 5f;
+            batUpOnce = true;
+            if (batDownOnce)
+            {
+                PlayBatDownAudio();
+                batDownOnce = false;
+            }
         }
 
         //Smoothing applied to slow down bat so it doesn't phase through ball
@@ -69,6 +90,20 @@ public class PaddleScript : MonoBehaviour
         RotateBat(BodySourceView.wristPosition, BodySourceView.handPosition);
 
         CheckBatInGame();
+    }
+
+    private void PlayBatUpAudio()
+    {
+        batUpAudio.Play();
+        batUpOnce = false;
+    }
+
+    private void PlayBatDownAudio()
+    {
+        if (batDownOnce)
+        {
+            batDownAudio.Play();
+        }
     }
 
     private void CheckBatInGame()
@@ -119,7 +154,7 @@ public class PaddleScript : MonoBehaviour
     }
     private void OnTriggerStay(Collider other)
     {
-        if(other.gameObject.tag == "SouthGoal")
+        if(other.gameObject.tag == "GoalTrigger")
         {
             JoyconController.RumbleJoycon(100, 400, 0.2f);
         }

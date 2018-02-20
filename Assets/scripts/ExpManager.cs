@@ -12,9 +12,7 @@ public class ExpManager : MonoBehaviour
     public GameObject ballObject;
     public InputField nameField;
     public Text ballAndPosText;
-    public Button nextBallButton;
     public Button saveExpButton;
-    public Button MissedButton;
     public Dropdown ballSpeedDropdown;
     public GameObject batObj;
 
@@ -26,36 +24,36 @@ public class ExpManager : MonoBehaviour
     private List<ExpData> expResults = new List<ExpData>();
     private int _currBallType;
     private int _currBallSpeed;
-    private float _oldTime;
-    private bool _timerStarted;
-    private bool _newBallOk;
     private bool playerReady;
     private AudioSource batSound;
+
+    private float oldTime;
+    private bool timerStarted;
+    private bool canSendBall;
+    private float maxDistance;
 
     /// <summary>
     /// AudioSources
     /// 0: Clapping, 1-5: Good 6-8: Missed
     /// </summary>
     private AudioSource[] _audioSources;
+    private bool newBallOk;
 
     private void Start()
     {
         GameUtils.playState = GameUtils.GamePlayState.ExpMode;
         GameUtils.ballSpeedPointsEnabled = false;
-        _timerStarted = true;
-        _newBallOk = true;
         _currBallNumber = -1;
         CreateBallPosition();
         ShuffleArray();
-        nextBallButton.onClick.AddListener(() => StartNextBall(true));
         saveExpButton.onClick.AddListener(FinishExp);
-        MissedButton.onClick.AddListener(() => StartNextBall(false));
         _audioSources = GetComponents<AudioSource>();
         BallScript.GameInit = false;
         playerReady = false;
-        batSound = batObj.GetComponent<AudioSource>();
+        batSound = batObj.GetComponents<AudioSource>()[0];
         batSound.mute = true;
         StartCoroutine(GameUtils.PlayIntroMusic());
+        newBallOk = true;
     }
 
     private void Update()
@@ -63,13 +61,18 @@ public class ExpManager : MonoBehaviour
         GameUtils.playState = GameUtils.GamePlayState.ExpMode;
 
         //Check ball state
+        //DEBUG ONLY
+        //if(true)
+        //END DEBUG
+        //Wait for player initalization
         if (!playerReady)
         {
             batSound.mute = true;
             if (JoyconController.Shoulder2Pressed)
             {
                 playerReady = true;
-                Debug.Log("Player Ready");
+                Debug.Log("Player Ready: Starting Exp");
+                StartNextBall(true);
             }
         }
         else
@@ -79,15 +82,59 @@ public class ExpManager : MonoBehaviour
             batSound.mute = false;
         }
 
-        if (_timerStarted)
+        //Perfect hit, start new ball
+        if(BallScript.BallHitOnce && maxDistance > 10)
         {
-            if (_currBallNumber == -1 || Time.time > _oldTime + 3)
-            {
-                _timerStarted = false;
-                _newBallOk = true;
-            }
+            timerStarted = false;
+            BallScript.BallHitOnce = false;
+            StartNextBall(true);
+            return;
         }
 
+        //Ball Falls in goal, start new ball
+        if (GoalScript.ExpBallLose)
+        {
+            GoalScript.ExpBallLose = false;
+            StartNextBall(false);
+        }
+
+        //Wait for result of hit
+        if (timerStarted)
+        {
+            if (BallScript.BallHitOnce)
+            {
+                if(_currentBall != null)
+                {
+                    if (maxDistance <= _currentBall.transform.position.z)
+                    {
+                        maxDistance = _currentBall.transform.position.z;
+                    }
+                }
+                else
+                {
+                    return;
+                }
+                
+            }
+            else
+            {
+                maxDistance = -130;
+            }
+            if(Time.time > oldTime + 8)
+            {
+                oldTime = Time.time;
+                StartNextBall(DetermineHit(_currentBall));
+            }
+        }
+    }
+
+    private bool DetermineHit(GameObject ball)
+    {
+        if(BallScript.BallHitOnce && maxDistance > -50)
+        {
+            return true;
+        }
+        return false;
     }
 
     private void SpawnBall()
@@ -95,16 +142,16 @@ public class ExpManager : MonoBehaviour
         _currBallType = _expList.Current;
         _currBallNumber++;
         ballAndPosText.text = "Ball: " + _currBallNumber + "   Position: " + _currBallType;
+
         bool isNewBallAvail = _expList.MoveNext();
         if (!isNewBallAvail)
         {
+            FinishExp();
             return;
         }
+
         _currentBall = Instantiate(ballObject, ballPositions[_currBallType].Origin, new Quaternion());
         Rigidbody rb = _currentBall.GetComponent<Rigidbody>();
-
-        //Click sound
-        _currentBall.GetComponents<AudioSource>()[1].Play();
 
         if(ballSpeedDropdown.value == 0) //Slow
         {
@@ -122,6 +169,10 @@ public class ExpManager : MonoBehaviour
         {
             _currBallSpeed = Random.Range(75, 250);
         }
+
+        //Play Click sound
+        _currentBall.GetComponents<AudioSource>()[1].Play();
+
         rb.AddForce(ballPositions[_currBallType].Destination * _currBallSpeed, ForceMode.Acceleration);
     }
 
@@ -212,16 +263,14 @@ public class ExpManager : MonoBehaviour
     private void StartNextBall(bool hit)
     {
         //DEBUG ONLY
-        //if (true) {
+        //if (true)
         //END DEBUG
         if (playerReady)
         {
-            if (_newBallOk)
+            if (newBallOk)
             {
-                _newBallOk = false;
+                newBallOk = false;
                 Debug.Log("Sending Ball");
-                _timerStarted = true;
-                _oldTime = Time.time;
                 if (_currBallNumber != -1)
                     CollectExpData(hit);
                 Destroy(_currentBall);
@@ -233,6 +282,7 @@ public class ExpManager : MonoBehaviour
                 {
                     StartCoroutine(NextBallComing());
                 }
+                newBallOk = true;
             }
         }
         else
@@ -256,7 +306,6 @@ public class ExpManager : MonoBehaviour
 
     private void FinishExp()
     {
-        CollectExpData(true);
         StartCoroutine(SaveCSV());
     }
 
@@ -274,7 +323,7 @@ public class ExpManager : MonoBehaviour
             // Save
             case 0:
                 CreateFile();
-                SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
+                SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Single);
                 break;
 
             // Cancel.
@@ -283,7 +332,7 @@ public class ExpManager : MonoBehaviour
 
             // Quit Without saving.
             case 2:
-                SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
+                SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Single);
                 break;
 
             default:
@@ -334,6 +383,8 @@ public class ExpManager : MonoBehaviour
         AudioSource aud = NumberSpeech.PlayAudio("nextball");
         yield return new WaitForSeconds(aud.clip.length + 0.2f);
         SpawnBall();
+        timerStarted = true;
+        oldTime = Time.time;
     }
 
     private void ShuffleArray()
@@ -341,7 +392,7 @@ public class ExpManager : MonoBehaviour
         List<int> expListLoc = new List<int>();
         for (int i = 0; i <= 14; i++) //Range of positions
         {
-            for (int j = 0; j <= 3; j++) //Times per position
+            for (int j = 0; j < 2; j++) //Times per position
             {
                 expListLoc.Add(i);
             }

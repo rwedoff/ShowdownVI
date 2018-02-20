@@ -6,9 +6,12 @@ using UnityEngine.Audio;
 public class BallScript : MonoBehaviour
 {
     public float inputSpeed;
-    public static bool GameInit;
     public AudioMixerSnapshot farSideSnap;
     public AudioMixerSnapshot closeSideSnap;
+
+    public static bool GameInit;
+
+    internal static bool BallHitOnce { get; set; }
 
     private Rigidbody rb;
     private static AudioSource ballSoundSource;
@@ -34,6 +37,7 @@ public class BallScript : MonoBehaviour
         paddleSound = audioSources[1];
         outofTableSound = audioSources[2];
         wallAudioSource = audioSources[3];
+        BallHitOnce = false;
     }
 
     //Used for physics
@@ -69,9 +73,6 @@ public class BallScript : MonoBehaviour
 
             //Change and limit pitch change on ball
             ballSoundSource.pitch = GameUtils.Scale(0, maxspeed, 0.8f, 1.25f, Math.Abs(rb.velocity.magnitude));
-
-            //Change distance based on camera position
-            ballSoundSource.maxDistance = 130 - CameraController.CameraDeltaZ;
 
             //Add a speed limit to the ball
             Vector3 oldVel = rb.velocity;
@@ -248,6 +249,7 @@ public class BallScript : MonoBehaviour
             }
             paddleSound.volume = GameUtils.Scale(0, 243382, 0.07f, 0.3f, impulse);
             paddleSound.Play();
+            BallHitOnce = true;
         }
         if(collision.gameObject.tag == "Wall" && !wallAudioSource.isPlaying)
         {

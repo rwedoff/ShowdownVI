@@ -11,6 +11,8 @@ public class GoalScript : MonoBehaviour {
     public static int OpponentScore;
     public static bool gameOver;
 
+    internal static bool ExpBallLose { get; set; }
+
     private static AudioSource winPointAudio;
     private static AudioSource losePointAudio;
     private static AudioSource theScoreIsAudio;
@@ -69,6 +71,7 @@ public class GoalScript : MonoBehaviour {
             if(gameObject.tag == "SouthGoal")
             {
                 PlayLoseSound();
+                ExpBallLose = true;
                 Destroy(other.gameObject);
             }
         }
@@ -148,93 +151,6 @@ public class GoalScript : MonoBehaviour {
             AudioSource t = NumberSpeech.PlayAudio("oppserve");
             yield return new WaitForSeconds(t.clip.length - 0.7f);
         }
-
-
-
-
-
-
-        //if (PlayerScore >= 11 && OpponentScore < 10)
-        //{
-        //    gameOver = true;
-        //    playerWins.Play();
-        //    yield return new WaitForSeconds(playerWins.clip.length - 1f);
-        //    SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Single);
-        //}
-        //else if(OpponentScore >= 11 && PlayerScore < 10)
-        //{
-        //    gameOver = true;
-        //    opponentWins.Play();
-        //    yield return new WaitForSeconds(opponentWins.clip.length - 1f);
-        //    //Destroy(GetComponent<MenuSpeech>());
-        //    SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Single);
-        //}
-        //else if (PlayerScore >= 11 && OpponentScore >= 11)
-        //{
-        //    if (PlayerScore > OpponentScore + 1)
-        //    {
-        //        gameOver = true;
-        //        playerWins.Play();
-        //        yield return new WaitForSeconds(playerWins.clip.length - 1f);
-        //        SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Single);
-        //    }
-        //    else if (OpponentScore > PlayerScore + 1)
-        //    {
-        //        gameOver = true;
-        //        opponentWins.Play();
-        //        yield return new WaitForSeconds(opponentWins.clip.length - 1f);
-        //        //Destroy(GetComponent<MenuSpeech>());
-        //        SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Single);
-        //    }
-        //    else if (PlayerScore > OpponentScore)
-        //    {
-        //        playerUpAudio.Play();
-        //    }
-        //    else if(PlayerScore < OpponentScore)
-        //    {
-        //        opponentUpAudio.Play();
-        //    }
-        //    else
-        //    {
-        //        tiedAudio.Play();
-        //    }
-        //    yield return new WaitForSeconds(5);
-        //    if (SinglePManager.PlayerServe)
-        //    {
-        //        AudioSource t = NumberSpeech.PlayAudio("yourserve");
-        //        yield return new WaitForSeconds(t.clip.length - 0.7f);
-        //    }
-        //    else
-        //    {
-        //        AudioSource t = NumberSpeech.PlayAudio("oppserve");
-        //        yield return new WaitForSeconds(t.clip.length - 0.7f);
-        //    }
-        //}
-        //else
-        //{
-        //    theScoreIsAudio.Play();
-        //    yield return new WaitForSeconds(theScoreIsAudio.clip.length );
-        //    AudioSource audioScore = null;
-        //    if (PlayerScore <= 11)
-        //        audioScore = NumberSpeech.PlayAudio(PlayerScore.ToString());
-        //    yield return new WaitForSeconds(audioScore.clip.length -0.5f);
-        //    toScoreAudio.Play();
-        //    yield return new WaitForSeconds(toScoreAudio.clip.length - 0.7f);
-        //    AudioSource oppoScore = null;
-        //    if (OpponentScore <= 11)
-        //        oppoScore = NumberSpeech.PlayAudio(OpponentScore.ToString());
-        //    yield return new WaitForSeconds(oppoScore.clip.length - 0.7f);
-        //    if (SinglePManager.PlayerServe)
-        //    {
-        //        AudioSource t = NumberSpeech.PlayAudio("yourserve");
-        //        yield return new WaitForSeconds(t.clip.length - 0.7f);
-        //    }
-        //    else
-        //    {
-        //        AudioSource t = NumberSpeech.PlayAudio("oppserve");
-        //        yield return new WaitForSeconds(t.clip.length - 0.7f);
-        //    }
-        //}
     }
 
     private static IEnumerator PlayServeSound()

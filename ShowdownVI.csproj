@@ -13,11 +13,13 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile></CompilerResponseFile>
+    <CompilerResponseFile>
+    </CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows64:19</UnityBuildTarget>
     <UnityVersion>2017.1.1f1</UnityVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <LangVersion>4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -104,9 +106,9 @@
     <Compile Include="Assets\scripts\JoyconController.cs" />
     <Compile Include="Assets\scripts\MenuScript.cs" />
     <Compile Include="Assets\scripts\MenuSpeech.cs" />
+    <Compile Include="Assets\scripts\NaiveBallScript.cs" />
     <Compile Include="Assets\scripts\NumberSpeech.cs" />
     <Compile Include="Assets\scripts\PaddleScript.cs" />
-    <Compile Include="Assets\scripts\PhoneServer.cs" />
     <Compile Include="Assets\scripts\SinglePManager.cs" />
     <Compile Include="Assets\scripts\TutorialSounds.cs" />
   </ItemGroup>
