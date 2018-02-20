@@ -20,17 +20,13 @@ public class CameraController : MonoBehaviour
     {
         CameraSpacePoint closestZPosition = BodySourceView.closestZPosition;
         float furtherestZPosition = BodySourceView.MaxZDistance;
+        CameraSpacePoint headPos = BodySourceView.headPosition;
 
         CameraDeltaZ = (furtherestZPosition - closestZPosition.Z) * 100;
-        //transform.position =
-        //    new Vector3(0,
-        //        (closestZPosition.Y * 100) + 30.16f,
-        //        (startingZPosition + CameraDeltaZ) + 20f);
+        float xDiff = (headPos.X - closestZPosition.X) * 100;
 
-        //No Y movement
-        transform.position =
-            new Vector3(0, transform.position.y, startingZPosition + CameraDeltaZ);
-        
+        Vector3 newPosition = new Vector3(xDiff, transform.position.y, startingZPosition + CameraDeltaZ);
+        transform.position = Vector3.Lerp(transform.position, newPosition, Time.fixedDeltaTime * 3);
 
         Quaternion fr = BodySourceView.faceRotation;
         float yAngle = Mathf.SmoothDampAngle(transform.eulerAngles.y, -fr.eulerAngles.y, ref yVelocity, smooth);
@@ -38,7 +34,6 @@ public class CameraController : MonoBehaviour
         float zAngle = Mathf.SmoothDampAngle(transform.eulerAngles.z, fr.eulerAngles.z, ref zVelocity, smooth);
 
         transform.localRotation = Quaternion.Euler(xAngle, yAngle, zAngle);
-
     }
 
 }

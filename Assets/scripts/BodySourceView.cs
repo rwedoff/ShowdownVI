@@ -22,7 +22,7 @@ public class BodySourceView : MonoBehaviour
     public static CameraSpacePoint handPosition;
     public static CameraSpacePoint wristPosition;
     public static CameraSpacePoint baseKinectPosition;
-    //public static CameraSpacePoint spineMidPosition;
+    public static CameraSpacePoint headPosition;
     public static CameraSpacePoint closestZPosition;
     public static float MaxZDistance;
 
@@ -139,6 +139,8 @@ public class BodySourceView : MonoBehaviour
             leftyMode = false;
         }
 
+        headPosition = body.Joints[JointType.Head].Position;
+
         MaxZDistance = 
             Math.Max(body.Joints[JointType.Head].Position.Z, 
             Math.Max(body.Joints[JointType.Head].Position.Z, 
@@ -172,7 +174,7 @@ public class BodySourceView : MonoBehaviour
 
         closestZPosition = new CameraSpacePoint()
         {
-            X = body.Joints[JointType.Head].Position.X,
+            X = body.Joints[JointType.SpineMid].Position.X,
             Y = body.Joints[JointType.SpineMid].Position.Y,
             Z = minZDistance
         };
