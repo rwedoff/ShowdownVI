@@ -25,8 +25,8 @@ public class GoalScript : MonoBehaviour {
 
     private void Start()
     {
-        PlayerScore = 11;
-        OpponentScore = 10;
+        PlayerScore = 0;
+        OpponentScore = 0;
         AudioSource[] audioSources = transform.parent.GetComponents<AudioSource>();
         winPointAudio = audioSources[0];
         losePointAudio = audioSources[1];

@@ -150,14 +150,14 @@ public class BodySourceView : MonoBehaviour
             Math.Max(body.Joints[JointType.HipLeft].Position.Z,
                 body.Joints[JointType.HipRight].Position.Z))))));
 
-        float minZBodyDist =
-           Math.Min(body.Joints[JointType.Head].Position.Z,
-           Math.Min(body.Joints[JointType.Head].Position.Z,
-           Math.Min(body.Joints[JointType.Neck].Position.Z,
-           Math.Min(body.Joints[JointType.SpineMid].Position.Z,
-           Math.Min(body.Joints[JointType.SpineShoulder].Position.Z,
-           Math.Min(body.Joints[JointType.HipLeft].Position.Z,
-               body.Joints[JointType.HipRight].Position.Z))))));
+        //float minZBodyDist =
+        //   Math.Min(body.Joints[JointType.Head].Position.Z,
+        //   Math.Min(body.Joints[JointType.Head].Position.Z,
+        //   Math.Min(body.Joints[JointType.Neck].Position.Z,
+        //   Math.Min(body.Joints[JointType.SpineMid].Position.Z,
+        //   Math.Min(body.Joints[JointType.SpineShoulder].Position.Z,
+        //   Math.Min(body.Joints[JointType.HipLeft].Position.Z,
+        //       body.Joints[JointType.HipRight].Position.Z))))));
 
         float minZDistance =
             Math.Min(body.Joints[JointType.Head].Position.Z,
@@ -169,7 +169,7 @@ public class BodySourceView : MonoBehaviour
         {
             X = body.Joints[JointType.SpineShoulder].Position.X,
             Y = body.Joints[JointType.Head].Position.Y,
-            Z = minZBodyDist
+            Z = MaxZDistance
         };
 
         closestZPosition = new CameraSpacePoint()

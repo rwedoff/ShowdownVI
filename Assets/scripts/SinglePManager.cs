@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 public class SinglePManager : MonoBehaviour {
     public GameObject BallObj;
@@ -7,6 +8,11 @@ public class SinglePManager : MonoBehaviour {
     private AudioSource ballSound;
     private AudioSource batSound;
     private bool gameInit;
+    private bool calibrated;
+    private bool calibratedWait;
+
+    public static float TableEdge { get; private set; }
+    public static float CenterX { get; private set; }
 
     void Start () {
         BallScript.GameInit = true;
@@ -16,6 +22,8 @@ public class SinglePManager : MonoBehaviour {
         batSound = BatObj.GetComponent<AudioSource>();
         ballSound.mute = true;
         batSound.mute = true;
+        calibrated = false;
+        calibratedWait = false;
         StartCoroutine(GameUtils.PlayIntroMusic());
     }
 
@@ -30,7 +38,22 @@ public class SinglePManager : MonoBehaviour {
             return;
         }
 
-        if (JoyconController.Shoulder2Pressed)
+        if(!calibrated && JoyconController.ButtonPressed)
+        {
+            TableEdge = BodySourceView.baseKinectPosition.Z;
+            CenterX = BodySourceView.baseKinectPosition.X;
+            calibrated = true;
+            return;
+        }
+
+        if(calibrated && !calibratedWait && !JoyconController.ButtonPressed)
+        {
+            calibratedWait = true;
+            StartCoroutine(ReadInitServe());
+            return;
+        }
+
+        if (calibratedWait && JoyconController.ButtonPressed)
         {
             GameUtils.playState = GameUtils.GamePlayState.SettingBall;
             Time.timeScale = 1;
@@ -39,5 +62,12 @@ public class SinglePManager : MonoBehaviour {
             batSound.mute = false;
             gameInit = false;
         }
+    }
+
+    private IEnumerator ReadInitServe()
+    {
+        AudioSource serveAudio = NumberSpeech.PlayAudio(GameUtils.PlayerServe ? "yourserve" : "oppserve");
+        yield return new WaitForSeconds(serveAudio.clip.length);
+        calibratedWait = true;
     }
 }

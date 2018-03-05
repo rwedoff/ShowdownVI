@@ -15,6 +15,8 @@ public class PaddleScript : MonoBehaviour
     private float oldTime;
     private float halfBatLen;
     private float halfBatThick;
+    private const float estAvgError = 26f;
+    private const float unityTableEdge = 130f;
 
     // Use this for initialization
     void Start()
@@ -36,7 +38,18 @@ public class PaddleScript : MonoBehaviour
     {
         CameraSpacePoint midSpinePosition = BodySourceView.baseKinectPosition;
         CameraSpacePoint handPosition = BodySourceView.handPosition;
-        float centerXPoint = midSpinePosition.X;
+        float centerXPoint, maxZPoint;
+
+        if (GameUtils.playState ==  GameUtils.GamePlayState.ExpMode)
+        {
+            centerXPoint = ExpManager.CenterX != 0 ? ExpManager.CenterX : midSpinePosition.X;
+            maxZPoint = ExpManager.TableEdge != 0 ? ExpManager.TableEdge : midSpinePosition.Z;
+        }
+        else
+        {
+            centerXPoint = SinglePManager.CenterX != 0 ? SinglePManager.CenterX : midSpinePosition.X;
+            maxZPoint = SinglePManager.TableEdge != 0 ? SinglePManager.TableEdge : midSpinePosition.Z;
+        }
 
         //Add buffer to be able to reach the opposite side easier.
         //Not sure why leftyMode needs to be more of a buffer.
@@ -51,11 +64,11 @@ public class PaddleScript : MonoBehaviour
 
         //Calculate the position of the paddle based on the distance from the mid spine join
         float xPos = (centerXPoint - handPosition.X) * 100,
-              zPos = (midSpinePosition.Z - handPosition.Z) * 100,
+              zPos = (maxZPoint - handPosition.Z) * 100,
               yPos = transform.position.y;
 
         //If screen press, lift bat
-        if (JoyconController.Shoulder2Pressed || ScreenPressDown)
+        if (JoyconController.ButtonPressed || ScreenPressDown)
         {
             yPos = 20;
             batDownOnce = true;
@@ -77,7 +90,7 @@ public class PaddleScript : MonoBehaviour
         }
 
         //Smoothing applied to slow down bat so it doesn't phase through ball
-        Vector3 newPosition = new Vector3(-xPos, yPos, (zPos - 142f));
+        Vector3 newPosition = new Vector3(-xPos, yPos, (zPos - unityTableEdge - estAvgError));
         rb.MovePosition(Vector3.Lerp(rb.position, newPosition, Time.fixedDeltaTime * 30));
 
         //DEBUG ONLY

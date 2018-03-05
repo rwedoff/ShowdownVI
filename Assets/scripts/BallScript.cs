@@ -157,7 +157,7 @@ public class BallScript : MonoBehaviour
     private void SetBallForServe()
     {
         var paddlePos = bat.transform.position;
-        if (JoyconController.Shoulder2Pressed || PaddleScript.ScreenPressDown)
+        if (JoyconController.ButtonPressed || PaddleScript.ScreenPressDown)
         {
             if (paddlePos.x < 50 && paddlePos.x > -50 && paddlePos.z > -130)
             {

@@ -2,7 +2,7 @@
 
 public class JoyconController : MonoBehaviour {
     private static Joycon j;
-    public static bool Shoulder2Pressed;
+    public static bool ButtonPressed;
 
     // Values made available via Unity
     public float[] stick;
@@ -25,14 +25,28 @@ public class JoyconController : MonoBehaviour {
         if (j != null && j.state > Joycon.state_.ATTACHED)
         {
             // GetButtonDown checks if a button has been released
-            if (j.GetButtonUp(Joycon.Button.SHOULDER_2))
+            if (j.GetButtonUp(Joycon.Button.SHOULDER_2) || 
+                j.GetButtonUp(Joycon.Button.DPAD_UP) ||
+                j.GetButtonUp(Joycon.Button.DPAD_DOWN) ||
+                j.GetButtonUp(Joycon.Button.DPAD_RIGHT) ||
+                j.GetButtonUp(Joycon.Button.DPAD_LEFT) ||
+                j.GetButtonUp(Joycon.Button.SHOULDER_1) ||
+                j.GetButtonUp(Joycon.Button.PLUS) ||
+                j.GetButtonUp(Joycon.Button.MINUS))
             {
-                Shoulder2Pressed = false;
+                ButtonPressed = false;
             }
             // GetButtonDown checks if a button is currently down (pressed or held)
-            if (j.GetButton(Joycon.Button.SHOULDER_2))
+            if (j.GetButton(Joycon.Button.SHOULDER_2) ||
+                j.GetButton(Joycon.Button.DPAD_UP) ||
+                j.GetButton(Joycon.Button.DPAD_DOWN) ||
+                j.GetButton(Joycon.Button.DPAD_RIGHT) ||
+                j.GetButton(Joycon.Button.DPAD_LEFT) ||
+                j.GetButton(Joycon.Button.SHOULDER_1) ||
+                j.GetButton(Joycon.Button.PLUS) ||
+                j.GetButton(Joycon.Button.MINUS))
             {
-                Shoulder2Pressed = true;
+                ButtonPressed = true;
             }
         }
     }

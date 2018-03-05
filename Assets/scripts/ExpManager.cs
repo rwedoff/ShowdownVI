@@ -15,6 +15,8 @@ public class ExpManager : MonoBehaviour
     public Button saveExpButton;
     public Dropdown ballSpeedDropdown;
     public GameObject batObj;
+    public static float TableEdge { get; private set; }
+    public static float CenterX { get; private set; }
 
     private GameObject _currentBall;
     private Dictionary<int, BallPath> ballPositions= new Dictionary<int, BallPath>();
@@ -54,6 +56,8 @@ public class ExpManager : MonoBehaviour
         batSound.mute = true;
         StartCoroutine(GameUtils.PlayIntroMusic());
         newBallOk = true;
+        TableEdge = 0;
+        CenterX = 0;
     }
 
     private void Update()
@@ -68,10 +72,11 @@ public class ExpManager : MonoBehaviour
         if (!playerReady)
         {
             batSound.mute = true;
-            if (JoyconController.Shoulder2Pressed)
+            if (JoyconController.ButtonPressed)
             {
                 playerReady = true;
-                Debug.Log("Player Ready: Starting Exp");
+                TableEdge = BodySourceView.baseKinectPosition.Z;
+                CenterX = BodySourceView.baseKinectPosition.X;
                 StartNextBall(true);
             }
         }
