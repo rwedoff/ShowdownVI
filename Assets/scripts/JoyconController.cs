@@ -21,6 +21,17 @@ public class JoyconController : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
+        //DEBUG Simulate button press on Keyboard
+        if (Input.GetKeyUp(KeyCode.Home))
+        {
+            ButtonPressed = false;
+        }
+        if (Input.GetKeyDown(KeyCode.Home))
+        {
+            ButtonPressed = true;
+        }
+        //END DEBUG
+
         // make sure the Joycon only gets checked if attached
         if (j != null && j.state > Joycon.state_.ATTACHED)
         {

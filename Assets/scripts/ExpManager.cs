@@ -1,38 +1,43 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class ExpManager : MonoBehaviour
 {
-    public GameObject ballObject;
+    public GameObject ourBall;
+    public GameObject naiveBall;
     public InputField nameField;
     public Text ballAndPosText;
     public Button saveExpButton;
     public Dropdown ballSpeedDropdown;
     public GameObject batObj;
+    public Canvas menuCanvas;
+    public Button startExpButton;
+    public Text clockText;
+
     public static float TableEdge { get; private set; }
     public static float CenterX { get; private set; }
+    public static bool NaiveMode { private get; set; }
 
     private GameObject _currentBall;
     private Dictionary<int, BallPath> ballPositions= new Dictionary<int, BallPath>();
     private IEnumerator<int> _expList;
     private int _currBallNumber;
-    private string _participantName= "";
     private List<ExpData> expResults = new List<ExpData>();
     private int _currBallType;
     private int _currBallSpeed;
     private bool playerReady;
     private AudioSource batSound;
-
     private float oldTime;
     private bool timerStarted;
-    private bool canSendBall;
     private float maxDistance;
+    private GameObject ballObject;
+    private System.Timers.Timer clockTimer;
 
     /// <summary>
     /// AudioSources
@@ -40,6 +45,8 @@ public class ExpManager : MonoBehaviour
     /// </summary>
     private AudioSource[] _audioSources;
     private bool newBallOk;
+    private string clockString;
+    private DateTime startTime;
 
     private void Start()
     {
@@ -49,6 +56,7 @@ public class ExpManager : MonoBehaviour
         CreateBallPosition();
         ShuffleArray();
         saveExpButton.onClick.AddListener(FinishExp);
+        startExpButton.onClick.AddListener(StartExp);
         _audioSources = GetComponents<AudioSource>();
         BallScript.GameInit = false;
         playerReady = false;
@@ -58,11 +66,37 @@ public class ExpManager : MonoBehaviour
         newBallOk = true;
         TableEdge = 0;
         CenterX = 0;
+        clockTimer = new System.Timers.Timer(1000);
+        clockTimer.Elapsed += ClockTimer_Elapsed;
+    }
+
+    private void ClockTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+    {
+        TimeSpan diff = e.SignalTime - startTime;
+        clockString = diff.Minutes + ":" + diff.Seconds;
+    }
+
+    private void StartExp()
+    {
+        clockTimer.Start();
+        startTime = DateTime.Now;
+        StartNextBall(true);
     }
 
     private void Update()
     {
         GameUtils.playState = GameUtils.GamePlayState.ExpMode;
+
+        clockText.text = clockString;
+
+        if (NaiveMode)
+        {
+            ballObject = naiveBall;
+        }
+        else
+        {
+            ballObject = ourBall;
+        }
 
         //Check ball state
         //DEBUG ONLY
@@ -77,7 +111,6 @@ public class ExpManager : MonoBehaviour
                 playerReady = true;
                 TableEdge = BodySourceView.baseKinectPosition.Z;
                 CenterX = BodySourceView.baseKinectPosition.X;
-                StartNextBall(true);
             }
         }
         else
@@ -172,7 +205,7 @@ public class ExpManager : MonoBehaviour
         }
         else if(ballSpeedDropdown.value == 3) //Random
         {
-            _currBallSpeed = Random.Range(75, 250);
+            _currBallSpeed = UnityEngine.Random.Range(75, 250);
         }
 
         //Play Click sound
@@ -328,7 +361,9 @@ public class ExpManager : MonoBehaviour
             // Save
             case 0:
                 CreateFile();
-                SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Single);
+                menuCanvas.enabled = true;
+                ResetExp();
+                clockTimer.Stop();
                 break;
 
             // Cancel.
@@ -337,7 +372,9 @@ public class ExpManager : MonoBehaviour
 
             // Quit Without saving.
             case 2:
-                SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Single);
+                menuCanvas.enabled = true;
+                clockTimer.Stop();
+                ResetExp();
                 break;
 
             default:
@@ -354,10 +391,12 @@ public class ExpManager : MonoBehaviour
         {
             sb.AppendLine(data.ToString());
         }
+        string naiveModeStr = NaiveMode ? "_navie_" : "_our_";
+        
         var path = EditorUtility.SaveFilePanel(
               "Save Experiment as CSV",
               "",
-              _participantName + "exp.csv",
+              nameField.text + naiveModeStr + "exp.csv",
               "csv");
 
         if (path.Length != 0)
@@ -370,14 +409,14 @@ public class ExpManager : MonoBehaviour
     private IEnumerator NextBallHit()
     {
         _audioSources[0].Play();
-        _audioSources[Random.Range(1, 5)].Play();
+        _audioSources[UnityEngine.Random.Range(1, 5)].Play();
         yield return new WaitForSeconds(_audioSources[0].clip.length);
         yield return NextBallComing();
     }
 
     private IEnumerator NextBallMissed()
     {
-        int rand = Random.Range(6, 8);
+        int rand = UnityEngine.Random.Range(6, 8);
         _audioSources[rand].Play();
         yield return new WaitForSeconds(_audioSources[rand].clip.length);
         yield return NextBallComing();
@@ -413,6 +452,20 @@ public class ExpManager : MonoBehaviour
             expListLoc[n] = value;
         }
         _expList = expListLoc.GetEnumerator();
+    }
+
+    private void ResetExp()
+    {
+        _expList.Reset();
+        _currBallNumber = -1;
+        GameUtils.ballSpeedPointsEnabled = false;
+        BallScript.GameInit = false;
+        playerReady = false;
+        batSound = batObj.GetComponents<AudioSource>()[0];
+        batSound.mute = true;
+        StartCoroutine(GameUtils.PlayIntroMusic());
+        newBallOk = true;
+        expResults.Clear();
     }
 }
 
