@@ -47,6 +47,7 @@ public class ExpManager : MonoBehaviour
     private bool newBallOk;
     private string clockString;
     private DateTime startTime;
+    private bool canPressButton;
 
     private void Start()
     {
@@ -66,6 +67,7 @@ public class ExpManager : MonoBehaviour
         newBallOk = true;
         TableEdge = 0;
         CenterX = 0;
+        canPressButton = true;
         clockTimer = new System.Timers.Timer(1000);
         clockTimer.Elapsed += ClockTimer_Elapsed;
     }
@@ -344,13 +346,18 @@ public class ExpManager : MonoBehaviour
 
     private void FinishExp()
     {
-        StartCoroutine(SaveCSV());
+        if (canPressButton)
+        {
+            canPressButton = false;
+            StartCoroutine(SaveCSV());
+        }
     }
 
     private IEnumerator SaveCSV()
     {
         NumberSpeech.PlayAudio("thanks");
         yield return new WaitForSeconds(2);
+        AudioListener.pause = true;
         int option = EditorUtility.DisplayDialogComplex("Finish Experiment",
             "Are you sure you want to finish this experiment?",
             "Save",
@@ -360,6 +367,7 @@ public class ExpManager : MonoBehaviour
         {
             // Save
             case 0:
+                Destroy(ballObject);
                 CreateFile();
                 menuCanvas.enabled = true;
                 ResetExp();
@@ -372,6 +380,7 @@ public class ExpManager : MonoBehaviour
 
             // Quit Without saving.
             case 2:
+                Destroy(ballObject);
                 menuCanvas.enabled = true;
                 clockTimer.Stop();
                 ResetExp();
@@ -381,6 +390,8 @@ public class ExpManager : MonoBehaviour
                 Debug.LogError("Unrecognized option.");
                 break;
         }
+        AudioListener.pause = false;
+        canPressButton = true;
     }
 
     private void CreateFile()
