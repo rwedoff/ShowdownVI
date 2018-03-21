@@ -39,6 +39,9 @@ public class ExpManager : MonoBehaviour
     private GameObject ballObject;
     private System.Timers.Timer clockTimer;
 
+    private enum HitRes { miss = 0, hit = 1, perfectHit = 2 }
+    private HitRes thisHitres;
+
     /// <summary>
     /// AudioSources
     /// 0: Clapping, 1-5: Good 6-8: Missed
@@ -82,7 +85,7 @@ public class ExpManager : MonoBehaviour
     {
         clockTimer.Start();
         startTime = DateTime.Now;
-        StartNextBall(true);
+        StartNextBall(HitRes.hit);
     }
 
     private void Update()
@@ -123,11 +126,13 @@ public class ExpManager : MonoBehaviour
         }
 
         //Perfect hit, start new ball
-        if(BallScript.BallHitOnce && maxDistance > 10)
+        if((BallScript.BallHitOnce || NaiveBallScript.BallHitOnce) && maxDistance > 10)
         {
             timerStarted = false;
             BallScript.BallHitOnce = false;
-            StartNextBall(true);
+            NaiveBallScript.BallHitOnce = false;
+            //StartNextBall(true);
+            StartCoroutine(PerfectHitStartNextBall());
             return;
         }
 
@@ -135,13 +140,13 @@ public class ExpManager : MonoBehaviour
         if (GoalScript.ExpBallLose)
         {
             GoalScript.ExpBallLose = false;
-            StartNextBall(false);
+            StartNextBall(HitRes.miss);
         }
 
         //Wait for result of hit
         if (timerStarted)
         {
-            if (BallScript.BallHitOnce)
+            if (BallScript.BallHitOnce || NaiveBallScript.BallHitOnce)
             {
                 if(_currentBall != null)
                 {
@@ -168,13 +173,19 @@ public class ExpManager : MonoBehaviour
         }
     }
 
-    private bool DetermineHit(GameObject ball)
+    private IEnumerator PerfectHitStartNextBall()
     {
-        if(BallScript.BallHitOnce && maxDistance > -50)
+        yield return new WaitForSeconds(1);
+        StartNextBall(HitRes.perfectHit);
+    }
+
+    private HitRes DetermineHit(GameObject ball)
+    {
+        if((BallScript.BallHitOnce || NaiveBallScript.BallHitOnce) && maxDistance > -50)
         {
-            return true;
+            return HitRes.hit;
         }
-        return false;
+        return HitRes.miss;
     }
 
     private void SpawnBall()
@@ -300,7 +311,7 @@ public class ExpManager : MonoBehaviour
         });
     }
 
-    private void StartNextBall(bool hit)
+    private void StartNextBall(HitRes hitres)
     {
         //DEBUG ONLY
         //if (true)
@@ -312,11 +323,11 @@ public class ExpManager : MonoBehaviour
                 newBallOk = false;
                 Debug.Log("Sending Ball");
                 if (_currBallNumber != -1)
-                    CollectExpData(hit);
+                    CollectExpData(hitres);
                 Destroy(_currentBall);
                 if (_currBallNumber != -1)
                 {
-                    StartCoroutine(hit ? NextBallHit() : NextBallMissed());
+                    StartCoroutine((hitres == HitRes.hit || hitres == HitRes.perfectHit) ? NextBallHit() : NextBallMissed());
                 }
                 else
                 {
@@ -332,7 +343,7 @@ public class ExpManager : MonoBehaviour
 
     }
     
-    private void CollectExpData(bool hit)
+    private void CollectExpData(HitRes hit)
     {
         expResults.Add(new ExpData()
         {
@@ -340,7 +351,7 @@ public class ExpManager : MonoBehaviour
             BallNumber = _currBallNumber,
             BallType = _currBallType,
             BallSpeed = _currBallSpeed,
-            BallResult = hit ? 0 : 1
+            BallResult = (int) hit
         });
     }
 
@@ -367,7 +378,7 @@ public class ExpManager : MonoBehaviour
         {
             // Save
             case 0:
-                Destroy(ballObject);
+                Destroy(_currentBall);
                 CreateFile();
                 menuCanvas.enabled = true;
                 ResetExp();
@@ -380,7 +391,7 @@ public class ExpManager : MonoBehaviour
 
             // Quit Without saving.
             case 2:
-                Destroy(ballObject);
+                Destroy(_currentBall);
                 menuCanvas.enabled = true;
                 clockTimer.Stop();
                 ResetExp();
