@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Timers;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
@@ -23,7 +24,10 @@ public class ExpManager : MonoBehaviour
     public static float TableEdge { get; private set; }
     public static float CenterX { get; private set; }
     public static bool NaiveMode { private get; set; }
+    public static List<ExperimentLogFile> LogFileList = new List<ExperimentLogFile>();
+    public static string globalClockString;
 
+    private string clockString;
     private GameObject _currentBall;
     private Dictionary<int, BallPath> ballPositions= new Dictionary<int, BallPath>();
     private IEnumerator<int> _expList;
@@ -38,6 +42,8 @@ public class ExpManager : MonoBehaviour
     private float maxDistance;
     private GameObject ballObject;
     private System.Timers.Timer clockTimer;
+    private System.Timers.Timer globalTimer;
+    private bool canPressStartButton;
 
     private enum HitRes { miss = 0, hit = 1, perfectHit = 2 }
     private HitRes thisHitres;
@@ -48,7 +54,6 @@ public class ExpManager : MonoBehaviour
     /// </summary>
     private AudioSource[] _audioSources;
     private bool newBallOk;
-    private string clockString;
     private DateTime startTime;
     private bool canPressButton;
 
@@ -71,21 +76,14 @@ public class ExpManager : MonoBehaviour
         TableEdge = 0;
         CenterX = 0;
         canPressButton = true;
-        clockTimer = new System.Timers.Timer(1000);
+        clockTimer = new Timer(100);
         clockTimer.Elapsed += ClockTimer_Elapsed;
-    }
+        globalTimer = new Timer(100);
+        globalTimer.Elapsed += GlobalTimer_Elapsed;
+        globalTimer.Start();
+        ExperimentLog.Log("Program Started", time: DateTime.Now.ToLongTimeString());
 
-    private void ClockTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-    {
-        TimeSpan diff = e.SignalTime - startTime;
-        clockString = diff.Minutes + ":" + diff.Seconds;
-    }
-
-    private void StartExp()
-    {
-        clockTimer.Start();
-        startTime = DateTime.Now;
-        StartNextBall(HitRes.hit);
+        canPressStartButton = true;
     }
 
     private void Update()
@@ -173,6 +171,29 @@ public class ExpManager : MonoBehaviour
         }
     }
 
+    private void GlobalTimer_Elapsed(object sender, ElapsedEventArgs e)
+    {
+        globalClockString = e.SignalTime.ToLongTimeString();
+    }
+
+    private void ClockTimer_Elapsed(object sender, ElapsedEventArgs e)
+    {
+        TimeSpan diff = e.SignalTime - startTime;
+        clockString = diff.Minutes + ":" + diff.Seconds + "." + diff.Milliseconds;
+    }
+
+    private void StartExp()
+    {
+        ExperimentLog.Log("Attempted to Start Experiment");
+        if (canPressStartButton && playerReady)
+        {
+            canPressStartButton = false;
+            clockTimer.Start();
+            startTime = DateTime.Now;
+            StartNextBall(HitRes.hit);
+        }
+    }
+
     private IEnumerator PerfectHitStartNextBall()
     {
         yield return new WaitForSeconds(1);
@@ -190,41 +211,44 @@ public class ExpManager : MonoBehaviour
 
     private void SpawnBall()
     {
-        _currBallType = _expList.Current;
-        _currBallNumber++;
-        ballAndPosText.text = "Ball: " + _currBallNumber + "   Position: " + _currBallType;
-
-        bool isNewBallAvail = _expList.MoveNext();
-        if (!isNewBallAvail)
+        if (!canPressStartButton && playerReady) //Double check to present sending two balls in transition
         {
-            FinishExp();
-            return;
-        }
+            _currBallType = _expList.Current;
+            _currBallNumber++;
+            ballAndPosText.text = "Ball: " + _currBallNumber + "   Position: " + _currBallType;
 
-        _currentBall = Instantiate(ballObject, ballPositions[_currBallType].Origin, new Quaternion());
-        Rigidbody rb = _currentBall.GetComponent<Rigidbody>();
+            bool isNewBallAvail = _expList.MoveNext();
+            if (!isNewBallAvail)
+            {
+                FinishExp();
+                return;
+            }
 
-        if(ballSpeedDropdown.value == 0) //Slow
-        {
-            _currBallSpeed = 75;
-        }
-        else if(ballSpeedDropdown.value == 1) //Medium
-        {
-            _currBallSpeed = 125;
-        }
-        else if (ballSpeedDropdown.value == 2) //Fast
-        {
-            _currBallSpeed = 250;
-        }
-        else if(ballSpeedDropdown.value == 3) //Random
-        {
-            _currBallSpeed = UnityEngine.Random.Range(75, 250);
-        }
+            _currentBall = Instantiate(ballObject, ballPositions[_currBallType].Origin, new Quaternion());
+            Rigidbody rb = _currentBall.GetComponent<Rigidbody>();
 
-        //Play Click sound
-        _currentBall.GetComponents<AudioSource>()[1].Play();
+            if (ballSpeedDropdown.value == 0) //Slow
+            {
+                _currBallSpeed = 75;
+            }
+            else if (ballSpeedDropdown.value == 1) //Medium
+            {
+                _currBallSpeed = 125;
+            }
+            else if (ballSpeedDropdown.value == 2) //Fast
+            {
+                _currBallSpeed = 250;
+            }
+            else if (ballSpeedDropdown.value == 3) //Random
+            {
+                _currBallSpeed = UnityEngine.Random.Range(75, 250);
+            }
 
-        rb.AddForce(ballPositions[_currBallType].Destination * _currBallSpeed, ForceMode.Acceleration);
+            //Play Click sound
+            _currentBall.GetComponents<AudioSource>()[1].Play();
+
+            rb.AddForce(ballPositions[_currBallType].Destination * _currBallSpeed, ForceMode.Acceleration);
+        }
     }
 
     private void CreateBallPosition()
@@ -313,15 +337,13 @@ public class ExpManager : MonoBehaviour
 
     private void StartNextBall(HitRes hitres)
     {
-        //DEBUG ONLY
-        //if (true)
-        //END DEBUG
-        if (playerReady)
+        if (playerReady && !canPressStartButton)
         {
             if (newBallOk)
             {
                 newBallOk = false;
                 Debug.Log("Sending Ball");
+                ExperimentLog.Log("Sending Ball");
                 if (_currBallNumber != -1)
                     CollectExpData(hitres);
                 Destroy(_currentBall);
@@ -333,12 +355,12 @@ public class ExpManager : MonoBehaviour
                 {
                     StartCoroutine(NextBallComing());
                 }
-                newBallOk = true;
             }
         }
         else
         {
             Debug.LogWarning("Player Not Ready: Need to press trigger");
+            ExperimentLog.Log("Player Not Ready", tag: "warn");
         }
 
     }
@@ -351,7 +373,9 @@ public class ExpManager : MonoBehaviour
             BallNumber = _currBallNumber,
             BallType = _currBallType,
             BallSpeed = _currBallSpeed,
-            BallResult = (int) hit
+            BallResult = (int) hit,
+            EventTime = globalClockString,
+            TimerTime = clockString
         });
     }
 
@@ -359,15 +383,19 @@ public class ExpManager : MonoBehaviour
     {
         if (canPressButton)
         {
+            Time.timeScale = 0;
             canPressButton = false;
-            StartCoroutine(SaveCSV());
+            canPressStartButton = true;
+            //StartCoroutine(SaveCSV());
+            SaveCSV();
         }
     }
 
-    private IEnumerator SaveCSV()
+    private void SaveCSV()
     {
-        NumberSpeech.PlayAudio("thanks");
-        yield return new WaitForSeconds(2);
+        newBallOk = false;
+        //NumberSpeech.PlayAudio("thanks");
+        //yield return new WaitForSeconds(2);
         AudioListener.pause = true;
         int option = EditorUtility.DisplayDialogComplex("Finish Experiment",
             "Are you sure you want to finish this experiment?",
@@ -381,12 +409,14 @@ public class ExpManager : MonoBehaviour
                 Destroy(_currentBall);
                 CreateFile();
                 menuCanvas.enabled = true;
-                ResetExp();
+                newBallOk = false;
                 clockTimer.Stop();
+                ResetExp();
                 break;
 
             // Cancel.
             case 1:
+                newBallOk = true;
                 break;
 
             // Quit Without saving.
@@ -394,11 +424,13 @@ public class ExpManager : MonoBehaviour
                 Destroy(_currentBall);
                 menuCanvas.enabled = true;
                 clockTimer.Stop();
+                newBallOk = false;
                 ResetExp();
                 break;
 
             default:
                 Debug.LogError("Unrecognized option.");
+                ExperimentLog.Log("Error in save menu", tag:"Error");
                 break;
         }
         AudioListener.pause = false;
@@ -407,9 +439,21 @@ public class ExpManager : MonoBehaviour
 
     private void CreateFile()
     {
+        ExperimentLog.Log("Creating file");
         var sb = new StringBuilder();
-        sb.AppendLine("Participant_Id" + "," + "Ball_Number" + "," + "Ball_Type" + ", " + "Ball_Speed" + "," + "Ball_Result");
+        //Append Exp result headers
+        sb.AppendLine("Event_Time" + "," + "Timer_Time" + "," + "Participant_Id" + ","
+            + "Ball_Number" + "," + "Ball_Type" + ", " + "Ball_Speed" + "," + "Ball_Result");
+        //Append Exp results
         foreach (var data in expResults)
+        {
+            sb.AppendLine(data.ToString());
+        }
+        //Append Log Headers
+        sb.AppendLine("\n\n");
+        sb.AppendLine("Event_Time" + "," + "Tag" + "," + "Message");
+        //Append Log Results
+        foreach (var data in LogFileList)
         {
             sb.AppendLine(data.ToString());
         }
@@ -425,7 +469,6 @@ public class ExpManager : MonoBehaviour
         {
             File.WriteAllBytes(path, new UTF8Encoding().GetBytes(sb.ToString()));
         }
-
     }
 
     private IEnumerator NextBallHit()
@@ -451,6 +494,7 @@ public class ExpManager : MonoBehaviour
         SpawnBall();
         timerStarted = true;
         oldTime = Time.time;
+        newBallOk = true;
     }
 
     private void ShuffleArray()
@@ -493,15 +537,17 @@ public class ExpManager : MonoBehaviour
 
 public class ExpData
 {
-    public string ParticipantId { get; set; }
-    public int BallNumber { get; set; }
-    public int BallType { get; set; }
-    public int BallSpeed { get; set; }
-    public int BallResult { get; set; }
+    public string ParticipantId { get; internal set; }
+    public int BallNumber { get; internal set; }
+    public int BallType { get; internal set; }
+    public int BallSpeed { get; internal set; }
+    public int BallResult { get; internal set; }
+    public string EventTime { get; internal set; }
+    public string TimerTime { get; internal set; }
 
     public override string ToString()
     {
-        return ParticipantId + "," + BallNumber + "," + BallType + "," + BallSpeed + "," + BallResult;
+        return EventTime + "," + TimerTime + "," + ParticipantId + "," + BallNumber + "," + BallType + "," + BallSpeed + "," + BallResult;
     }
 }
 
@@ -509,4 +555,27 @@ public class BallPath
 {
     public Vector3 Origin { get; set; }
     public Vector3 Destination { get; set; }
+}
+
+public class ExperimentLogFile
+{
+    public string Tag { get; set; }
+    public string Time { get; set; }
+    public string Message { get; set; }
+
+    public override string ToString()
+    {
+        return Time + "," + Tag + "," + Message;
+    }
+}
+
+public static class ExperimentLog{
+    public static void Log(string message, string tag = "info", string time = null)
+    {
+        ExpManager.LogFileList.Add(new ExperimentLogFile() {
+            Message = message,
+            Tag= tag,
+            Time= ExpManager.globalClockString
+        });
+    }
 }

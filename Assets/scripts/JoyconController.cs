@@ -46,6 +46,7 @@ public class JoyconController : MonoBehaviour {
                 j.GetButtonUp(Joycon.Button.MINUS))
             {
                 ButtonPressed = false;
+                ExperimentLog.Log("Button Released", "Joycon");
             }
             // GetButtonDown checks if a button is currently down (pressed or held)
             if (j.GetButton(Joycon.Button.SHOULDER_2) ||
@@ -58,6 +59,7 @@ public class JoyconController : MonoBehaviour {
                 j.GetButton(Joycon.Button.MINUS))
             {
                 ButtonPressed = true;
+                ExperimentLog.Log("Button Pressed", "Joycon");
             }
         }
     }

@@ -203,9 +203,15 @@ public class Joycon
         if (d == DebugType.ALL || d == debug_type || debug_type == DebugType.ALL)
         {
             if (s.Contains("connected"))
+            {
                 Debug.LogWarning(s);
+                ExperimentLog.Log("Joycon Connected");
+            }
             else
+            {
                 Debug.Log(s);
+                ExperimentLog.Log(s, "Joycon");
+            }
         }
     }
     public bool GetButtonDown(Button b)

@@ -12,6 +12,7 @@ public class MenuScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         expButton.onClick.AddListener(() => {
+            ExperimentLog.Log("Pressed Exp Mode", "Menu");
             ExpManager.NaiveMode = false;
             menuCanvas.enabled = false;
             expMenuText.text = "Our Ball Exp";
@@ -24,10 +25,12 @@ public class MenuScript : MonoBehaviour {
 
         freeButton.onClick.AddListener(() => {
             Time.timeScale = 1;
+            ExperimentLog.Log("Pressed Free play Mode", "Menu");
             SceneManager.LoadSceneAsync("SinglePlayer", LoadSceneMode.Single);
         });
 
         naiveButton.onClick.AddListener(() => {
+            ExperimentLog.Log("Pressed Naive Mode", "Menu");
             ExpManager.NaiveMode = true;
             menuCanvas.enabled = false;
             Time.timeScale = 1;

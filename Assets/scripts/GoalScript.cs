@@ -131,7 +131,7 @@ public class GoalScript : MonoBehaviour {
             gameOver = true;
             playerWins.Play();
             yield return new WaitForSeconds(playerWins.clip.length);
-            SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Single);
+            SceneManager.LoadSceneAsync("Master", LoadSceneMode.Single);
         }
         else if ((OpponentScore >= 11 && PlayerScore < 10)||
             ((OpponentScore >= 10 && PlayerScore >= 10) && (OpponentScore > PlayerScore + 1)))
@@ -139,7 +139,7 @@ public class GoalScript : MonoBehaviour {
             gameOver = true;
             opponentWins.Play();
             yield return new WaitForSeconds(opponentWins.clip.length);
-            SceneManager.LoadSceneAsync("Menu", LoadSceneMode.Single);
+            SceneManager.LoadSceneAsync("Master", LoadSceneMode.Single);
         }
         if (GameUtils.PlayerServe)
         {
