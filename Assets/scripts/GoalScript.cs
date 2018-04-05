@@ -12,6 +12,7 @@ public class GoalScript : MonoBehaviour {
     public static bool gameOver;
 
     internal static bool ExpBallLose { get; set; }
+    public static bool ExpBallWin { get; internal set; }
 
     private static AudioSource winPointAudio;
     private static AudioSource losePointAudio;
@@ -72,6 +73,12 @@ public class GoalScript : MonoBehaviour {
             {
                 PlayLoseSound();
                 ExpBallLose = true;
+                Destroy(other.gameObject);
+            }
+            if (gameObject.tag == "NorthGoal")
+            {
+                PlayWinSound();
+                ExpBallWin = true;
                 Destroy(other.gameObject);
             }
         }

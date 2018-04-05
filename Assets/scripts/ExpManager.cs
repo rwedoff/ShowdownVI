@@ -20,6 +20,7 @@ public class ExpManager : MonoBehaviour
     public Canvas menuCanvas;
     public Button startExpButton;
     public Text clockText;
+    public GameObject globalSpeechGameObject;
 
     public static float TableEdge { get; private set; }
     public static float CenterX { get; private set; }
@@ -41,16 +42,17 @@ public class ExpManager : MonoBehaviour
     private bool timerStarted;
     private float maxDistance;
     private GameObject ballObject;
-    private System.Timers.Timer clockTimer;
-    private System.Timers.Timer globalTimer;
+    private Timer clockTimer;
+    private Timer globalTimer;
     private bool canPressStartButton;
-
-    private enum HitRes { miss = 0, hit = 1, perfectHit = 2 }
+    private int gamePoints;
+    private enum HitRes { miss = 0, hitNotPastHalf = 1, pastHalfHit = 2, goal = 3 }
     private HitRes thisHitres;
+    private NumberSpeech numberSpeech;
 
     /// <summary>
     /// AudioSources
-    /// 0: Clapping, 1-5: Good 6-8: Missed
+    /// 0: Clapping, 1-8: Good 9-13: Missed
     /// </summary>
     private AudioSource[] _audioSources;
     private bool newBallOk;
@@ -59,6 +61,7 @@ public class ExpManager : MonoBehaviour
 
     private void Start()
     {
+        
         GameUtils.playState = GameUtils.GamePlayState.ExpMode;
         GameUtils.ballSpeedPointsEnabled = false;
         _currBallNumber = -1;
@@ -66,6 +69,7 @@ public class ExpManager : MonoBehaviour
         ShuffleArray();
         saveExpButton.onClick.AddListener(FinishExp);
         startExpButton.onClick.AddListener(StartExp);
+        numberSpeech = globalSpeechGameObject.GetComponent<NumberSpeech>();
         _audioSources = GetComponents<AudioSource>();
         BallScript.GameInit = false;
         playerReady = false;
@@ -82,7 +86,7 @@ public class ExpManager : MonoBehaviour
         globalTimer.Elapsed += GlobalTimer_Elapsed;
         globalTimer.Start();
         ExperimentLog.Log("Program Started", time: DateTime.Now.ToLongTimeString());
-
+        gamePoints = 0;
         canPressStartButton = true;
     }
 
@@ -129,8 +133,7 @@ public class ExpManager : MonoBehaviour
             timerStarted = false;
             BallScript.BallHitOnce = false;
             NaiveBallScript.BallHitOnce = false;
-            //StartNextBall(true);
-            StartCoroutine(PerfectHitStartNextBall());
+            StartCoroutine(HitPastHalfStartNextBall());
             return;
         }
 
@@ -139,6 +142,11 @@ public class ExpManager : MonoBehaviour
         {
             GoalScript.ExpBallLose = false;
             StartNextBall(HitRes.miss);
+        }
+        if (GoalScript.ExpBallWin)
+        {
+            GoalScript.ExpBallWin = false;
+            StartNextBall(HitRes.goal);
         }
 
         //Wait for result of hit
@@ -173,7 +181,7 @@ public class ExpManager : MonoBehaviour
 
     private void GlobalTimer_Elapsed(object sender, ElapsedEventArgs e)
     {
-        globalClockString = e.SignalTime.ToLongTimeString();
+        globalClockString = e.SignalTime.ToLongTimeString() + " +" + e.SignalTime.Millisecond; ;
     }
 
     private void ClockTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -182,6 +190,9 @@ public class ExpManager : MonoBehaviour
         clockString = diff.Minutes + ":" + diff.Seconds + "." + diff.Milliseconds;
     }
 
+    /// <summary>
+    /// Click listener that starts the game. Must have player press a button and the researcher press start
+    /// </summary>
     private void StartExp()
     {
         ExperimentLog.Log("Attempted to Start Experiment");
@@ -190,25 +201,37 @@ public class ExpManager : MonoBehaviour
             canPressStartButton = false;
             clockTimer.Start();
             startTime = DateTime.Now;
-            StartNextBall(HitRes.hit);
+            StartNextBall(HitRes.hitNotPastHalf); //Starting game, params don't matter here.
         }
     }
 
-    private IEnumerator PerfectHitStartNextBall()
+    /// <summary>
+    /// Starts a new ball after waiting 1.5 seconds based on a perfect hit (a hit that went past the halfway point)
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator HitPastHalfStartNextBall()
     {
-        yield return new WaitForSeconds(1);
-        StartNextBall(HitRes.perfectHit);
+        yield return new WaitForSeconds(1.5f); //Time allowed once ball goes past halfway point
+        StartNextBall(HitRes.pastHalfHit);
     }
 
+    /// <summary>
+    /// Determines if the ball was hit, and didn't go past the halfway or it was missed
+    /// </summary>
+    /// <param name="ball"></param>
+    /// <returns>HitRes.miss or HitRes.hit</returns>
     private HitRes DetermineHit(GameObject ball)
     {
         if((BallScript.BallHitOnce || NaiveBallScript.BallHitOnce) && maxDistance > -50)
         {
-            return HitRes.hit;
+            return HitRes.hitNotPastHalf;
         }
         return HitRes.miss;
     }
 
+    /// <summary>
+    /// Spawns a new ball based on the 30 balls of the experiment list.
+    /// </summary>
     private void SpawnBall()
     {
         if (!canPressStartButton && playerReady) //Double check to present sending two balls in transition
@@ -251,6 +274,9 @@ public class ExpManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Creation of list of ball positions and their destinations.
+    /// </summary>
     private void CreateBallPosition()
     {
         //Left Start
@@ -335,6 +361,11 @@ public class ExpManager : MonoBehaviour
         });
     }
 
+    /// <summary>
+    /// Starts the next ball and adds to the total gamePoints
+    /// </summary>
+    /// <param name="hitres"></param>
+    /// <param name="pointsToAdd"></param>
     private void StartNextBall(HitRes hitres)
     {
         if (playerReady && !canPressStartButton)
@@ -345,11 +376,14 @@ public class ExpManager : MonoBehaviour
                 Debug.Log("Sending Ball");
                 ExperimentLog.Log("Sending Ball");
                 if (_currBallNumber != -1)
+                {
+                    gamePoints += (int)hitres; //The points correlate to the hitres
                     CollectExpData(hitres);
+                }
                 Destroy(_currentBall);
                 if (_currBallNumber != -1)
                 {
-                    StartCoroutine((hitres == HitRes.hit || hitres == HitRes.perfectHit) ? NextBallHit() : NextBallMissed());
+                    StartCoroutine(hitres != HitRes.miss ? NextBallHit() : NextBallMissed());
                 }
                 else
                 {
@@ -364,7 +398,11 @@ public class ExpManager : MonoBehaviour
         }
 
     }
-    
+
+    /// <summary>
+    /// Collects the data from a current hit session and creates a new ExpData object for the saved CSV
+    /// </summary>
+    /// <param name="hit"></param>
     private void CollectExpData(HitRes hit)
     {
         expResults.Add(new ExpData()
@@ -375,22 +413,27 @@ public class ExpManager : MonoBehaviour
             BallSpeed = _currBallSpeed,
             BallResult = (int) hit,
             EventTime = globalClockString,
-            TimerTime = clockString
+            TimerTime = clockString,
+            GamePoints = gamePoints
         });
     }
 
+    /// <summary>
+    /// On click for the finish button in the UI.
+    /// </summary>
     private void FinishExp()
     {
         if (canPressButton)
         {
-            Time.timeScale = 0;
             canPressButton = false;
             canPressStartButton = true;
-            //StartCoroutine(SaveCSV());
             SaveCSV();
         }
     }
 
+    /// <summary>
+    /// Pulls up a GUI menu and based on selected option saves a CSV file with the data and log file.
+    /// </summary>
     private void SaveCSV()
     {
         newBallOk = false;
@@ -437,13 +480,17 @@ public class ExpManager : MonoBehaviour
         canPressButton = true;
     }
 
+    /// <summary>
+    /// Creates the file to be saved and saves to disk
+    /// </summary>
     private void CreateFile()
     {
         ExperimentLog.Log("Creating file");
         var sb = new StringBuilder();
         //Append Exp result headers
         sb.AppendLine("Event_Time" + "," + "Timer_Time" + "," + "Participant_Id" + ","
-            + "Ball_Number" + "," + "Ball_Type" + ", " + "Ball_Speed" + "," + "Ball_Result");
+            + "Ball_Number" + "," + "Ball_Type" + ", " + "Ball_Speed" + "," + 
+            "Ball_Result [Miss->0 : MaybeHit->1 : HitPastHalf->2 : Goal->3]" + "," + "Game_Points");
         //Append Exp results
         foreach (var data in expResults)
         {
@@ -471,32 +518,57 @@ public class ExpManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Audio for a hit ball and starts a new ball
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator NextBallHit()
     {
         _audioSources[0].Play();
-        _audioSources[UnityEngine.Random.Range(1, 5)].Play();
+        _audioSources[UnityEngine.Random.Range(1, 8)].Play();
         yield return new WaitForSeconds(_audioSources[0].clip.length);
         yield return NextBallComing();
     }
-
+    
+    /// <summary>
+    /// Audio for a missed ball and starts a new ball
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator NextBallMissed()
     {
-        int rand = UnityEngine.Random.Range(6, 8);
+        int rand = UnityEngine.Random.Range(9, 13);
         _audioSources[rand].Play();
         yield return new WaitForSeconds(_audioSources[rand].clip.length);
         yield return NextBallComing();
     }
 
+    /// <summary>
+    /// Audio for next ball and calls spawnBall to start a new ball
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator NextBallComing()
     {
-        AudioSource aud = NumberSpeech.PlayAudio("nextball");
-        yield return new WaitForSeconds(aud.clip.length + 0.2f);
+        if((UnityEngine.Random.Range(0,3) == 0 && _currBallNumber != -1)
+            || _currBallNumber == 29) //Randomly 1/3 of the time say how many points
+        {
+            ExperimentLog.Log("Read the Score");
+            StartCoroutine(numberSpeech.PlayExpPointsAudio(gamePoints));
+            yield return new WaitForSeconds(3); //Wait 3 seconds for points audio to finish
+        }
+        else
+        {
+            AudioSource aud = NumberSpeech.PlayAudio("nextball");
+            yield return new WaitForSeconds(aud.clip.length + 0.2f);
+        }
         SpawnBall();
         timerStarted = true;
         oldTime = Time.time;
         newBallOk = true;
     }
 
+    /// <summary>
+    /// Untilty to shuffle the array of Exp ball locations
+    /// </summary>
     private void ShuffleArray()
     {
         List<int> expListLoc = new List<int>();
@@ -520,10 +592,14 @@ public class ExpManager : MonoBehaviour
         _expList = expListLoc.GetEnumerator();
     }
 
+    /// <summary>
+    /// Resets all the parameters of an experiment between Naive and our mode.
+    /// </summary>
     private void ResetExp()
     {
         _expList.Reset();
         _currBallNumber = -1;
+        gamePoints = 0;
         GameUtils.ballSpeedPointsEnabled = false;
         BallScript.GameInit = false;
         playerReady = false;
@@ -533,8 +609,18 @@ public class ExpManager : MonoBehaviour
         newBallOk = true;
         expResults.Clear();
     }
+
+    private IEnumerator ReadGamePoints()
+    {
+        numberSpeech.PlayExpPointsAudio(gamePoints);
+        yield return new WaitForSeconds(1.5f); //Wait arbiturary time till audio ends
+    }
+
 }
 
+/// <summary>
+/// Class that represents the saved data from each participant.
+/// </summary>
 public class ExpData
 {
     public string ParticipantId { get; internal set; }
@@ -544,19 +630,27 @@ public class ExpData
     public int BallResult { get; internal set; }
     public string EventTime { get; internal set; }
     public string TimerTime { get; internal set; }
+    public int GamePoints { get; internal set; }
 
     public override string ToString()
     {
-        return EventTime + "," + TimerTime + "," + ParticipantId + "," + BallNumber + "," + BallType + "," + BallSpeed + "," + BallResult;
+        return EventTime + "," + TimerTime + "," + ParticipantId + "," + BallNumber + "," + BallType + "," + 
+            BallSpeed + "," + BallResult + "," + GamePoints;
     }
 }
 
+/// <summary>
+/// Class that defines the path a ball will go in the Experiment
+/// </summary>
 public class BallPath
 {
     public Vector3 Origin { get; set; }
     public Vector3 Destination { get; set; }
 }
 
+/// <summary>
+/// Class that defines Log information that will be saved after each experiment
+/// </summary>
 public class ExperimentLogFile
 {
     public string Tag { get; set; }
@@ -569,6 +663,9 @@ public class ExperimentLogFile
     }
 }
 
+/// <summary>
+/// Static class for logging experiment data throughout the program
+/// </summary>
 public static class ExperimentLog{
     public static void Log(string message, string tag = "info", string time = null)
     {

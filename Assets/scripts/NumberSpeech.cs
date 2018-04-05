@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -36,8 +36,24 @@ public class NumberSpeech : MonoBehaviour
             { "lost", a[23] },
             { "thanks", a[24] },
             { "welcome", a[25] },
-            { "welcomemus", a[26] }
-
+            { "welcomemus", a[26] },
+            { "13", a[27] },
+            { "14", a[28] },
+            { "15", a[29] },
+            { "16", a[30] },
+            { "17", a[31] },
+            { "18", a[32] },
+            { "19", a[33] },
+            { "20", a[34] },
+            { "30", a[35] },
+            { "40", a[36] },
+            { "50", a[37] },
+            { "60", a[38] },
+            { "70", a[39] },
+            { "80", a[40] },
+            { "90", a[41] },
+            { "youhave", a[42] },
+            { "points", a[43] }
         };
     }
 
@@ -50,15 +66,46 @@ public class NumberSpeech : MonoBehaviour
 
     public static AudioSource PlayAudio(string arg)
     {
-        AudioSource val;
-        if (scoreAudioMap.TryGetValue(arg, out val))
+        AudioSource selectedAudio;
+        if (scoreAudioMap.TryGetValue(arg, out selectedAudio))
         {
-            val.Play();
+            selectedAudio.Play();
         }
         else
         {
             Debug.LogError("Sound Value Not Valid");
         }
-        return val;
+        return selectedAudio;
+    }
+
+    /// <summary>
+    /// Plays audio number in a range of 0 - 99.
+    /// Ex: "You Have 84 points"
+    /// </summary>
+    /// <param name="points"></param>
+    /// <returns></returns>
+    public IEnumerator PlayExpPointsAudio(int points)
+    {
+        string pointStr = points.ToString();
+        var aud = PlayAudio("youhave");
+        yield return new WaitForSeconds(aud.clip.length);
+        if (points <= 19)
+        {
+            var aud0 = PlayAudio(pointStr);
+            yield return new WaitForSeconds(aud0.clip.length);
+        }
+        else
+        {
+            string firstDigit = pointStr.Substring(0, 1) + "0";
+            string secondDigit = pointStr.Substring(1, 1);
+            var aud1 = PlayAudio(firstDigit);
+            yield return new WaitForSeconds(aud1.clip.length);
+            if (!secondDigit.Equals("0"))
+            {
+                var aud2 = PlayAudio(secondDigit);
+                yield return new WaitForSeconds(aud2.clip.length);
+            }
+        }
+        PlayAudio("points");
     }
 }
