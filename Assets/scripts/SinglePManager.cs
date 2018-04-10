@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class SinglePManager : MonoBehaviour {
     public GameObject BallObj;
@@ -15,6 +16,11 @@ public class SinglePManager : MonoBehaviour {
     public static float CenterX { get; private set; }
 
     void Start () {
+        if (JoyconManager.Instance == null)
+        {
+            SceneManager.LoadSceneAsync("GlobalInit", LoadSceneMode.Single);
+            return;
+        }
         BallScript.GameInit = true;
         GameUtils.PlayerServe = true;
         gameInit = true;

@@ -6,6 +6,7 @@ using System.Text;
 using System.Timers;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class ExpManager : MonoBehaviour
@@ -62,7 +63,11 @@ public class ExpManager : MonoBehaviour
 
     private void Start()
     {
-        
+        if (JoyconManager.Instance == null)
+        {
+            SceneManager.LoadSceneAsync("GlobalInit", LoadSceneMode.Single);
+            return;
+        }
         GameUtils.playState = GameUtils.GamePlayState.ExpMode;
         GameUtils.ballSpeedPointsEnabled = false;
         _currBallNumber = -1;

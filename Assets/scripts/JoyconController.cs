@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class JoyconController : MonoBehaviour {
     private static Joycon j;
@@ -10,12 +11,14 @@ public class JoyconController : MonoBehaviour {
     public Vector3 accel;
     public Quaternion orientation;
 
+
     void Start()
     {
         gyro = new Vector3(0, 0, 0);
         accel = new Vector3(0, 0, 0);
         // get the public Joycon object attached to the JoyconManager in scene
         j = JoyconManager.Instance.j;
+
     }
 
     // Update is called once per frame

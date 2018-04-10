@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using UnityEngine.SceneManagement;
+
 public class JoyconManager: MonoBehaviour
 {
 
@@ -23,6 +25,8 @@ public class JoyconManager: MonoBehaviour
         if (instance != null) Destroy(gameObject);
         instance = this;
         j = new Joycon();
+        DontDestroyOnLoad(instance);
+        SceneManager.LoadSceneAsync("Master", LoadSceneMode.Single);
     }
 
     void Start()
@@ -39,5 +43,7 @@ public class JoyconManager: MonoBehaviour
     void OnApplicationQuit()
     {
         j.Detach();
+        Destroy(instance);
+        Destroy(this);
     }
 }
