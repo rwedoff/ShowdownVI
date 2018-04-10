@@ -31,21 +31,31 @@ public class BodySourceView : MonoBehaviour
 
     public void Start()
     {
-        if(PlayerPrefs.GetInt("hand") == 0)
-        {
-            leftyMode = false;
-        }
-        else
-        {
-            leftyMode = true;
-        }
+        //Code used for actual menu and should be used in futher deployment coding
+        //if(PlayerPrefs.GetInt("hand") == 0)
+        //{
+        //    leftyMode = false;
+        //}
+        //else
+        //{
+        //    leftyMode = true;
+        //}
 
-        leftyToggle.isOn = leftyMode;
+        //leftyToggle.isOn = leftyMode;
     }
-
 
     void Update()
     {
+        if (leftyToggle.isOn) //Left handed
+        {
+            leftyMode = true;
+        }
+        else
+        {
+            leftyMode = false;
+        }
+
+
         if (BodySourceManager == null)
         {
             return;
@@ -118,6 +128,20 @@ public class BodySourceView : MonoBehaviour
         }
     }
 
+    public void SetLeftyToggle(bool isLefty)
+    {
+        if (isLefty)
+        {
+            leftyToggle.isOn = true;
+            leftyMode = true;
+        }
+        else
+        {
+            leftyToggle.isOn = false;
+            leftyMode = false;
+        }
+    }
+
     private GameObject CreateBodyObject(ulong id)
     {
         GameObject body = new GameObject("Body:" + id);
@@ -126,17 +150,15 @@ public class BodySourceView : MonoBehaviour
 
     private void RefreshBodyObject(Body body, GameObject bodyObject)
     {
-        if (leftyToggle.isOn) //Left handed
+        if (leftyMode) //Left handed
         {
             handPosition = body.Joints[JointType.HandTipLeft].Position;
             wristPosition = body.Joints[JointType.HandLeft].Position;
-            leftyMode = true;
         }
         else
         {
             handPosition = body.Joints[JointType.HandTipRight].Position;
             wristPosition = body.Joints[JointType.HandRight].Position;
-            leftyMode = false;
         }
 
         headPosition = body.Joints[JointType.Head].Position;

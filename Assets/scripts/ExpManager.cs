@@ -27,6 +27,7 @@ public class ExpManager : MonoBehaviour
     public static bool NaiveMode { private get; set; }
     public static List<ExperimentLogFile> LogFileList = new List<ExperimentLogFile>();
     public static string globalClockString;
+    public static string ParticipantId { private get; set; }
 
     private string clockString;
     private GameObject _currentBall;
@@ -646,33 +647,4 @@ public class BallPath
 {
     public Vector3 Origin { get; set; }
     public Vector3 Destination { get; set; }
-}
-
-/// <summary>
-/// Class that defines Log information that will be saved after each experiment
-/// </summary>
-public class ExperimentLogFile
-{
-    public string Tag { get; set; }
-    public string Time { get; set; }
-    public string Message { get; set; }
-
-    public override string ToString()
-    {
-        return Time + "," + Tag + "," + Message;
-    }
-}
-
-/// <summary>
-/// Static class for logging experiment data throughout the program
-/// </summary>
-public static class ExperimentLog{
-    public static void Log(string message, string tag = "info", string time = null)
-    {
-        ExpManager.LogFileList.Add(new ExperimentLogFile() {
-            Message = message,
-            Tag= tag,
-            Time= ExpManager.globalClockString
-        });
-    }
 }

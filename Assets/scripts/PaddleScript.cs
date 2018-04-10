@@ -15,7 +15,7 @@ public class PaddleScript : MonoBehaviour
     private float oldTime;
     private float halfBatLen;
     private float halfBatThick;
-    private const float estAvgError = 26f;
+    private const float estAvgError = 7f; //Prev 26
     private const float unityTableEdge = 130f;
 
     // Use this for initialization
