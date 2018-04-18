@@ -3,6 +3,12 @@ using UnityEngine.SceneManagement;
 
 public class JoyconController : MonoBehaviour {
     private static Joycon j;
+
+    /// <summary>
+    /// ButtonPressed is the bool that sets calibration.
+    /// Originally it was when the player presses any button for the first time,
+    /// they calibrated the system. This is used in FreePlay, but not in ExpMode
+    /// </summary>
     public static bool ButtonPressed;
 
     // Values made available via Unity
@@ -36,10 +42,10 @@ public class JoyconController : MonoBehaviour {
         //END DEBUG
 
         // make sure the Joycon only gets checked if attached
-        if (j != null && j.state > Joycon.state_.ATTACHED)
+        if (j != null && j.state > Joycon.state_.ATTACHED && GameUtils.playState != GameUtils.GamePlayState.ExpMode)
         {
             // GetButtonDown checks if a button has been released
-            if (j.GetButtonUp(Joycon.Button.SHOULDER_2) || 
+            if (j.GetButtonUp(Joycon.Button.SHOULDER_2) ||
                 j.GetButtonUp(Joycon.Button.DPAD_UP) ||
                 j.GetButtonUp(Joycon.Button.DPAD_DOWN) ||
                 j.GetButtonUp(Joycon.Button.DPAD_RIGHT) ||
@@ -49,7 +55,7 @@ public class JoyconController : MonoBehaviour {
                 j.GetButtonUp(Joycon.Button.MINUS))
             {
                 ButtonPressed = false;
-                ExperimentLog.Log("Button Released", "Joycon");
+                //ExperimentLog.Log("Button Released", "Joycon");
             }
             // GetButtonDown checks if a button is currently down (pressed or held)
             if (j.GetButton(Joycon.Button.SHOULDER_2) ||
@@ -62,7 +68,7 @@ public class JoyconController : MonoBehaviour {
                 j.GetButton(Joycon.Button.MINUS))
             {
                 ButtonPressed = true;
-                ExperimentLog.Log("Button Pressed", "Joycon");
+                //ExperimentLog.Log("Button Pressed", "Joycon");
             }
         }
     }

@@ -18,10 +18,10 @@ public class ExpManager : MonoBehaviour
     public Button saveExpButton;
     public Dropdown ballSpeedDropdown;
     public GameObject batObj;
-    public Canvas menuCanvas;
     public Button startExpButton;
     public Text clockText;
     public GameObject globalSpeechGameObject;
+    public GameObject menuGameObject;
 
     public static float TableEdge { get; private set; }
     public static float CenterX { get; private set; }
@@ -258,7 +258,7 @@ public class ExpManager : MonoBehaviour
 
             if (ballSpeedDropdown.value == 0) //Slow
             {
-                _currBallSpeed = 75;
+                _currBallSpeed = 40; //Was 75 or 40
             }
             else if (ballSpeedDropdown.value == 1) //Medium
             {
@@ -457,7 +457,7 @@ public class ExpManager : MonoBehaviour
             case 0:
                 Destroy(_currentBall);
                 CreateFile();
-                menuCanvas.enabled = true;
+                menuGameObject.SetActive(true);
                 newBallOk = false;
                 clockTimer.Stop();
                 ResetExp();
@@ -471,7 +471,7 @@ public class ExpManager : MonoBehaviour
             // Quit Without saving.
             case 2:
                 Destroy(_currentBall);
-                menuCanvas.enabled = true;
+                menuGameObject.SetActive(true);
                 clockTimer.Stop();
                 newBallOk = false;
                 ResetExp();
@@ -542,9 +542,13 @@ public class ExpManager : MonoBehaviour
     /// <returns></returns>
     private IEnumerator NextBallMissed()
     {
-        int rand = UnityEngine.Random.Range(9, 13);
-        _audioSources[rand].Play();
-        yield return new WaitForSeconds(_audioSources[rand].clip.length);
+        //Randomly, 1/3 of the time, play a random lose voice sound effect
+        if (UnityEngine.Random.Range(0, 2) == 0)
+        {
+            int rand = UnityEngine.Random.Range(9, 13);
+            _audioSources[rand].Play();
+            yield return new WaitForSeconds(_audioSources[rand].clip.length);
+        }
         yield return NextBallComing();
     }
 

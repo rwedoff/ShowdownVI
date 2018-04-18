@@ -23,7 +23,7 @@ public class BodySourceView : MonoBehaviour
     public static CameraSpacePoint wristPosition;
     public static CameraSpacePoint baseKinectPosition;
     public static CameraSpacePoint headPosition;
-    public static CameraSpacePoint closestZPosition;
+    public static CameraSpacePoint closestZPoint;
     public static float MaxZDistance;
 
     public static Quaternion faceRotation;
@@ -194,7 +194,7 @@ public class BodySourceView : MonoBehaviour
             Z = MaxZDistance
         };
 
-        closestZPosition = new CameraSpacePoint()
+        closestZPoint = new CameraSpacePoint()
         {
             X = body.Joints[JointType.SpineMid].Position.X,
             Y = body.Joints[JointType.SpineMid].Position.Y,

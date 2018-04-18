@@ -18,12 +18,24 @@ public class CameraController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        CameraSpacePoint closestZPosition = BodySourceView.closestZPosition;
-        float furtherestZPosition = BodySourceView.MaxZDistance;
+        CameraSpacePoint closestZPoint = BodySourceView.closestZPoint;
+        //float furtherestZPosition = BodySourceView.MaxZDistance;
         CameraSpacePoint headPos = BodySourceView.headPosition;
+        float centerXPoint, maxZPoint;
 
-        CameraDeltaZ = (furtherestZPosition - closestZPosition.Z) * 100;
-        float xDiff = (headPos.X - closestZPosition.X) * 100;
+        if (GameUtils.playState == GameUtils.GamePlayState.ExpMode)
+        {
+            centerXPoint = ExpManager.CenterX != 0 ? ExpManager.CenterX : closestZPoint.X;
+            maxZPoint = ExpManager.TableEdge != 0 ? ExpManager.TableEdge : BodySourceView.MaxZDistance;
+        }
+        else
+        {
+            centerXPoint = SinglePManager.CenterX != 0 ? SinglePManager.CenterX : BodySourceView.closestZPoint.X;
+            maxZPoint = SinglePManager.TableEdge != 0 ? SinglePManager.TableEdge : BodySourceView.MaxZDistance;
+        }
+
+        CameraDeltaZ = (maxZPoint - closestZPoint.Z) * 100;
+        float xDiff = (headPos.X - centerXPoint) * 100;
 
         Vector3 newPosition = new Vector3(xDiff, transform.position.y, startingZPosition + CameraDeltaZ);
         transform.position = Vector3.Lerp(transform.position, newPosition, Time.fixedDeltaTime * 3);

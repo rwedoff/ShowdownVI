@@ -51,47 +51,49 @@ public class PaddleScript : MonoBehaviour
             maxZPoint = SinglePManager.TableEdge != 0 ? SinglePManager.TableEdge : midSpinePosition.Z;
         }
 
-        //Add buffer to be able to reach the opposite side easier.
-        //Not sure why leftyMode needs to be more of a buffer.
-        if (BodySourceView.leftyMode)
-        {
-            centerXPoint -= 0.15f;
-        }
-        else
-        {
-            centerXPoint += 0.06f;
-        }
+        ////Add buffer to be able to reach the opposite side easier.
+        ////Not sure why leftyMode needs to be more of a buffer.
+        //if (BodySourceView.leftyMode)
+        //{
+        //    centerXPoint -= 0.15f;
+        //}
+        //else
+        //{
+        //    centerXPoint += 0.06f;
+        //}
 
         //Calculate the position of the paddle based on the distance from the mid spine join
         float xPos = (centerXPoint - handPosition.X) * 100,
               zPos = (maxZPoint - handPosition.Z) * 100,
               yPos = transform.position.y;
 
-        //If screen press, lift bat
-        if (JoyconController.ButtonPressed || ScreenPressDown)
-        {
-            yPos = 20;
-            batDownOnce = true;
-            if (batUpOnce)
-            {
-                PlayBatUpAudio();
-                batUpOnce = false;
-            }
-        }
-        else
-        {
-            yPos = 5f;
-            batUpOnce = true;
-            if (batDownOnce)
-            {
-                PlayBatDownAudio();
-                batDownOnce = false;
-            }
-        }
+        ////If screen press, lift bat
+        //if (JoyconController.ButtonPressed || ScreenPressDown)
+        //{
+        //    yPos = 20;
+        //    batDownOnce = true;
+        //    if (batUpOnce)
+        //    {
+        //        PlayBatUpAudio();
+        //        batUpOnce = false;
+        //    }
+        //}
+        //else
+        //{
+        //    yPos = 5f;
+        //    batUpOnce = true;
+        //    if (batDownOnce)
+        //    {
+        //        PlayBatDownAudio();
+        //        batDownOnce = false;
+        //    }
+        //}
 
         //Smoothing applied to slow down bat so it doesn't phase through ball
         Vector3 newPosition = new Vector3(-xPos, yPos, (zPos - unityTableEdge - estAvgError));
-        rb.MovePosition(Vector3.Lerp(rb.position, newPosition, Time.fixedDeltaTime * 30));
+        //Smooting factor of fixedDeltaTime*20 is to keep the paddle from moving so quickly that is
+        //phases through the ball on collision.
+        rb.MovePosition(Vector3.Lerp(rb.position, newPosition, Time.fixedDeltaTime * 20));
 
         //DEBUG ONLY
         //float movehorizontal = Input.GetAxis("Horizontal");
@@ -165,17 +167,18 @@ public class PaddleScript : MonoBehaviour
             wallCollideAudio.volume = GameUtils.Scale(0, 45, 0.1f, 1, outOfBoundsBy);
         }
     }
-    private void OnTriggerStay(Collider other)
-    {
-        if(other.gameObject.tag == "GoalTrigger")
-        {
-            JoyconController.RumbleJoycon(100, 400, 0.2f);
-        }
-    }
-    private void OnTriggerExit(Collider other)
-    {
-        JoyconController.RumbleJoycon(0, 0, 0);
-    }
+
+    //private void OnTriggerStay(Collider other)
+    //{
+    //    if(other.gameObject.tag == "GoalTrigger")
+    //    {
+    //        JoyconController.RumbleJoycon(100, 400, 0.2f);
+    //    }
+    //}
+    //private void OnTriggerExit(Collider other)
+    //{
+    //    JoyconController.RumbleJoycon(0, 0, 0);
+    //}
 
     /// <summary>
     /// Calculates the rotation of the bat in the virtual world

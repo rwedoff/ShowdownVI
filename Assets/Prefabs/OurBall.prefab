@@ -136,14 +136,20 @@ AudioSource:
     - serializedVersion: 2
       time: 0.20221081
       value: 0.12907878
-      inSlope: -0.97108066
-      outSlope: -0.97108066
+      inSlope: -0.8632801
+      outSlope: -0.8632801
+      tangentMode: 136
+    - serializedVersion: 2
+      time: 0.24996077
+      value: 0.094315454
+      inSlope: -0.52971834
+      outSlope: -0.52971834
       tangentMode: 136
     - serializedVersion: 2
       time: 0.29808903
       value: 0.07829033
-      inSlope: -0.3768677
-      outSlope: -0.3768677
+      inSlope: -0.26750237
+      outSlope: -0.26750237
       tangentMode: 136
     - serializedVersion: 2
       time: 0.40328088

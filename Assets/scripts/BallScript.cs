@@ -20,7 +20,7 @@ public class BallScript : MonoBehaviour
     private AudioSource lostSound;
     private AudioSource outofTableSound;
     private AudioSource wallAudioSource;
-    private float maxspeed = 250;
+    private const float maxspeed = 250;
     private float oldTime;
     private bool timerStarted;
     private GameObject bat;

@@ -3235,12 +3235,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0449c16a27ba3ec479fd1ba2d86a7e15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ballObject: {fileID: 1988242986954202, guid: 00401e9af8e7daf41b18abe67b428a6a, type: 2}
+  ourBall: {fileID: 0}
+  naiveBall: {fileID: 0}
   nameField: {fileID: 714756251}
   ballAndPosText: {fileID: 1564564223}
   saveExpButton: {fileID: 450580052}
   ballSpeedDropdown: {fileID: 1106598804}
   batObj: {fileID: 1619227018}
+  menuCanvas: {fileID: 0}
+  startExpButton: {fileID: 0}
+  clockText: {fileID: 0}
+  globalSpeechGameObject: {fileID: 0}
 --- !u!82 &1115134339
 AudioSource:
   m_ObjectHideFlags: 0
@@ -4246,49 +4251,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 126
   m_CollisionDetection: 2
---- !u!1 &1282634598
-GameObject:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  serializedVersion: 5
-  m_Component:
-  - component: {fileID: 1282634600}
-  - component: {fileID: 1282634599}
-  m_Layer: 0
-  m_Name: JoyconManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1282634599
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1282634598}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 405bad29b2b998c408059182c189d9e9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  EnableIMU: 1
-  EnableLocalize: 1
-  LEDs: 255
---- !u!4 &1282634600
-Transform:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1282634598}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.5}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 12
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1297252286
 Prefab:
   m_ObjectHideFlags: 0
@@ -4334,7 +4296,7 @@ Prefab:
     - target: {fileID: 224485662052337124, guid: 7dc4f79d02d4a844492db2506eec061d,
         type: 2}
       propertyPath: m_RootOrder
-      value: 13
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 224485662052337124, guid: 7dc4f79d02d4a844492db2506eec061d,
         type: 2}
@@ -8310,6 +8272,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   backButton: {fileID: 1878185628}
+  menuCanvas: {fileID: 0}
 --- !u!114 &1878185628
 MonoBehaviour:
   m_ObjectHideFlags: 0
