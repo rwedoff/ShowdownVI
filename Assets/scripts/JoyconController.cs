@@ -75,7 +75,8 @@ public class JoyconController : MonoBehaviour {
 
     public static void RumbleJoycon(float lowFreq, float higFreq, float amp, int time = 0)
     {
-        if (CheckJoyconAvail() && BodySourceView.BodyFound)
+        //if (CheckJoyconAvail() && BodySourceView.BodyFound)
+        if(CheckJoyconAvail())
         {
             j.SetRumble(lowFreq, higFreq, amp, time);
         }

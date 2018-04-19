@@ -12,7 +12,7 @@ using UnityEngine.UI;
 public class ExpManager : MonoBehaviour
 {
     public GameObject ourBall;
-    public GameObject naiveBall;
+    //public GameObject naiveBall;
     public InputField nameField;
     public Text ballAndPosText;
     public Button saveExpButton;
@@ -25,12 +25,15 @@ public class ExpManager : MonoBehaviour
 
     public static float TableEdge { get; private set; }
     public static float CenterX { get; private set; }
-    public static bool NaiveMode { private get; set; }
+    //public static bool NaiveMode { private get; set; }
     public static List<ExperimentLogFile> LogFileList = new List<ExperimentLogFile>();
     public static string globalClockString;
     public static string ParticipantId { private get; set; }
+    public enum ExpState { menus, ballInPlay, noBall }
+    public static ExpState expState;
 
     private string clockString;
+    private BallPath _currBallPath;
     private GameObject _currentBall;
     private Dictionary<int, BallPath> ballPositions= new Dictionary<int, BallPath>();
     private IEnumerator<int> _expList;
@@ -43,7 +46,6 @@ public class ExpManager : MonoBehaviour
     private float oldTime;
     private bool timerStarted;
     private float maxDistance;
-    private GameObject ballObject;
     private Timer clockTimer;
     private Timer globalTimer;
     private bool canPressStartButton;
@@ -51,6 +53,9 @@ public class ExpManager : MonoBehaviour
     private enum HitRes { miss = 0, hitNotPastHalf = 1, pastHalfHit = 2, goal = 3 }
     private HitRes thisHitres;
     private NumberSpeech numberSpeech;
+    private const int rightStartXPos = 42;
+    private const int leftStartXPos = -42;
+    private const int  centerStartXPos = 0;
 
     /// <summary>
     /// AudioSources
@@ -94,6 +99,7 @@ public class ExpManager : MonoBehaviour
         ExperimentLog.Log("Program Started", time: DateTime.Now.ToLongTimeString());
         gamePoints = 0;
         canPressStartButton = true;
+        expState = ExpState.menus;
     }
 
     private void Update()
@@ -101,15 +107,6 @@ public class ExpManager : MonoBehaviour
         GameUtils.playState = GameUtils.GamePlayState.ExpMode;
 
         clockText.text = clockString;
-
-        if (NaiveMode)
-        {
-            ballObject = naiveBall;
-        }
-        else
-        {
-            ballObject = ourBall;
-        }
 
         //Check ball state
         //DEBUG ONLY
@@ -131,10 +128,17 @@ public class ExpManager : MonoBehaviour
             Time.timeScale = 1;
             BallScript.GameInit = false;
             batSound.mute = false;
+            expState = ExpState.noBall;
         }
 
+        CheckHitResult();
+        TactileDouse();
+    }
+
+    private void CheckHitResult()
+    {
         //Perfect hit, start new ball
-        if((BallScript.BallHitOnce || NaiveBallScript.BallHitOnce) && maxDistance > 10)
+        if ((BallScript.BallHitOnce || NaiveBallScript.BallHitOnce) && maxDistance > 10)
         {
             timerStarted = false;
             BallScript.BallHitOnce = false;
@@ -160,7 +164,7 @@ public class ExpManager : MonoBehaviour
         {
             if (BallScript.BallHitOnce || NaiveBallScript.BallHitOnce)
             {
-                if(_currentBall != null)
+                if (_currentBall != null)
                 {
                     if (maxDistance <= _currentBall.transform.position.z)
                     {
@@ -171,18 +175,64 @@ public class ExpManager : MonoBehaviour
                 {
                     return;
                 }
-                
+
             }
             else
             {
                 maxDistance = -130;
             }
-            if(Time.time > oldTime + 8)
+            if (Time.time > oldTime + 8)
             {
                 oldTime = Time.time;
+                expState = ExpState.noBall;
                 StartNextBall(DetermineHit(_currentBall));
             }
         }
+    }
+
+    private void TactileDouse()
+    {
+        Vector3 batPos = batObj.transform.position;
+        if (_currentBall != null)
+        {
+            float absDist = Math.Abs(batPos.x - GetActualXDestination());
+            float distAwayFromDest = 100 - absDist;
+            if (absDist < 30 && absDist > 20)
+            {
+                JoyconController.RumbleJoycon(160, 320, 0.1f, 200);
+            }
+            else if(absDist <= 20 && absDist > 10)
+            {
+                JoyconController.RumbleJoycon(160, 320, 0.3f, 200);
+            }   
+            else if( absDist < 10)
+            {
+                JoyconController.RumbleJoycon(160, 320, 0.9f, 200);
+            }
+            //if (Math.Abs(batPos.x - GetActualXDestination()) < 10)
+            //{
+            //    JoyconController.RumbleJoycon(160, 320, 0.6f, 200);
+            //}
+        }
+    }
+    
+    private float GetActualXDestination()
+    {
+        var bt = _currBallPath.BallType;
+        int startXPos = 0;
+        if (bt == BallType.center)
+        {
+            startXPos = centerStartXPos;
+        }
+        else if (bt == BallType.left)
+        {
+            startXPos = leftStartXPos;
+        }
+        else if (bt == BallType.right)
+        {
+            startXPos = rightStartXPos;
+        }
+        return startXPos + (2 * _currBallPath.Destination.x);
     }
 
     private void GlobalTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -253,7 +303,9 @@ public class ExpManager : MonoBehaviour
                 return;
             }
 
-            _currentBall = Instantiate(ballObject, ballPositions[_currBallType].Origin, new Quaternion());
+            _currBallPath = ballPositions[_currBallType];
+            _currentBall = Instantiate(ourBall, _currBallPath.Origin, new Quaternion());
+            expState = ExpState.ballInPlay;
             Rigidbody rb = _currentBall.GetComponent<Rigidbody>();
 
             if (ballSpeedDropdown.value == 0) //Slow
@@ -280,93 +332,7 @@ public class ExpManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Creation of list of ball positions and their destinations.
-    /// </summary>
-    private void CreateBallPosition()
-    {
-        //Left Start
-        ballPositions.Add(0, new BallPath
-        {
-            Origin = new Vector3(-42, 5, 110),
-            Destination = new Vector3(0, 5, -110)
-        });
-        ballPositions.Add(1, new BallPath
-        {
-            Origin = new Vector3(-42, 5, 110),
-            Destination = new Vector3(11, 5, -110)
-        });
-        ballPositions.Add(2, new BallPath
-        {
-            Origin = new Vector3(-42, 5, 110),
-            Destination = new Vector3(21, 5, -110)
-        });
-        ballPositions.Add(3, new BallPath
-        {
-            Origin = new Vector3(-42, 5, 110),
-            Destination = new Vector3(31, 5, -110)
-        });
-        ballPositions.Add(4, new BallPath
-        {
-            Origin = new Vector3(-42, 5, 110),
-            Destination = new Vector3(42, 5, -110)
-        });
-
-        //Middle Start
-        ballPositions.Add(5, new BallPath
-        {
-            Origin = new Vector3(0, 5, 110),
-            Destination = new Vector3(-21, 5, -110)
-        });
-        ballPositions.Add(6, new BallPath
-        {
-            Origin = new Vector3(0, 5, 110),
-            Destination = new Vector3(-11, 5, -110)
-        });
-        ballPositions.Add(7, new BallPath
-        {
-            Origin = new Vector3(0, 5, 110),
-            Destination = new Vector3(0, 5, -110)
-        });
-        ballPositions.Add(8, new BallPath
-        {
-            Origin = new Vector3(0, 5, 110),
-            Destination = new Vector3(11, 5, -110)
-        });
-        ballPositions.Add(9, new BallPath
-        {
-            Origin = new Vector3(0, 5, 110),
-            Destination = new Vector3(21, 5, -110)
-        });
-
-        //Right Start
-        ballPositions.Add(14, new BallPath
-        {
-            Origin = new Vector3(42, 5, 110),
-            Destination = new Vector3(0, 5, -110)
-        });
-        ballPositions.Add(13, new BallPath
-        {
-            Origin = new Vector3(42, 5, 110),
-            Destination = new Vector3(-11, 5, -110)
-        });
-        ballPositions.Add(12, new BallPath
-        {
-            Origin = new Vector3(42, 5, 110),
-            Destination = new Vector3(-21, 5, -110)
-        });
-        ballPositions.Add(11, new BallPath
-        {
-            Origin = new Vector3(42, 5, 110),
-            Destination = new Vector3(-31, 5, -110)
-        });
-        ballPositions.Add(10, new BallPath
-        {
-            Origin = new Vector3(42, 5, 110),
-            Destination = new Vector3(-42, 5, -110)
-        });
-    }
-
+   
     /// <summary>
     /// Starts the next ball and adds to the total gamePoints
     /// </summary>
@@ -510,12 +476,12 @@ public class ExpManager : MonoBehaviour
         {
             sb.AppendLine(data.ToString());
         }
-        string naiveModeStr = NaiveMode ? "_navie_" : "_our_";
+        //string naiveModeStr = NaiveMode ? "_navie_" : "_our_";
         
         var path = EditorUtility.SaveFilePanel(
               "Save Experiment as CSV",
               "",
-              nameField.text + naiveModeStr + "exp.csv",
+              nameField.text + "_exp.csv",
               "csv");
 
         if (path.Length != 0)
@@ -603,6 +569,108 @@ public class ExpManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Creation of list of ball positions and their destinations.
+    /// </summary>
+    private void CreateBallPosition()
+    {
+        //Left Start
+        ballPositions.Add(0, new BallPath
+        {
+            Origin = new Vector3(leftStartXPos, 5, 110),
+            Destination = new Vector3(0, 5, -110),
+            BallType = BallType.left
+        });
+        ballPositions.Add(1, new BallPath
+        {
+            Origin = new Vector3(leftStartXPos, 5, 110),
+            Destination = new Vector3(11, 5, -110),
+            BallType = BallType.left
+        });
+        ballPositions.Add(2, new BallPath
+        {
+            Origin = new Vector3(leftStartXPos, 5, 110),
+            Destination = new Vector3(21, 5, -110),
+            BallType = BallType.left
+        });
+        ballPositions.Add(3, new BallPath
+        {
+            Origin = new Vector3(leftStartXPos, 5, 110),
+            Destination = new Vector3(31, 5, -110),
+            BallType = BallType.left
+        });
+        ballPositions.Add(4, new BallPath
+        {
+            Origin = new Vector3(leftStartXPos, 5, 110),
+            Destination = new Vector3(42, 5, -110),
+            BallType = BallType.left
+        });
+
+        //Center Start
+        ballPositions.Add(5, new BallPath
+        {
+            Origin = new Vector3(centerStartXPos, 5, 110),
+            Destination = new Vector3(-21, 5, -110),
+            BallType = BallType.center
+        });
+        ballPositions.Add(6, new BallPath
+        {
+            Origin = new Vector3(centerStartXPos, 5, 110),
+            Destination = new Vector3(-11, 5, -110),
+            BallType = BallType.center
+        });
+        ballPositions.Add(7, new BallPath
+        {
+            Origin = new Vector3(centerStartXPos, 5, 110),
+            Destination = new Vector3(0, 5, -110),
+            BallType = BallType.center
+        });
+        ballPositions.Add(8, new BallPath
+        {
+            Origin = new Vector3(centerStartXPos, 5, 110),
+            Destination = new Vector3(11, 5, -110),
+            BallType = BallType.center
+        });
+        ballPositions.Add(9, new BallPath
+        {
+            Origin = new Vector3(centerStartXPos, 5, 110),
+            Destination = new Vector3(21, 5, -110),
+            BallType = BallType.center
+        });
+
+        //Right Start
+        ballPositions.Add(14, new BallPath
+        {
+            Origin = new Vector3(rightStartXPos, 5, 110),
+            Destination = new Vector3(0, 5, -110),
+            BallType = BallType.right
+        });
+        ballPositions.Add(13, new BallPath
+        {
+            Origin = new Vector3(rightStartXPos, 5, 110),
+            Destination = new Vector3(-11, 5, -110),
+            BallType = BallType.right
+        });
+        ballPositions.Add(12, new BallPath
+        {
+            Origin = new Vector3(rightStartXPos, 5, 110),
+            Destination = new Vector3(-21, 5, -110),
+            BallType = BallType.right
+        });
+        ballPositions.Add(11, new BallPath
+        {
+            Origin = new Vector3(rightStartXPos, 5, 110),
+            Destination = new Vector3(-31, 5, -110),
+            BallType = BallType.right
+        });
+        ballPositions.Add(10, new BallPath
+        {
+            Origin = new Vector3(rightStartXPos, 5, 110),
+            Destination = new Vector3(-42, 5, -110),
+            BallType = BallType.right
+        });
+    }
+
+    /// <summary>
     /// Resets all the parameters of an experiment between Naive and our mode.
     /// </summary>
     private void ResetExp()
@@ -656,4 +724,6 @@ public class BallPath
 {
     public Vector3 Origin { get; set; }
     public Vector3 Destination { get; set; }
+    public BallType BallType { get; set; }
 }
+public enum BallType { left, center, right }

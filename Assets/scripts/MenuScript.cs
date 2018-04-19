@@ -5,7 +5,6 @@ using UnityEngine.UI;
 public class MenuScript : MonoBehaviour {
     public Button expButton;
     public Button freeButton;
-    public Button naiveButton;
     public Text expMenuText;
     public InputField partInputField;
     public Button startRightHand;
@@ -25,7 +24,7 @@ public class MenuScript : MonoBehaviour {
 
         expButton.onClick.AddListener(() => {
             ExperimentLog.Log("Pressed Exp Mode", "Menu");
-            ExpManager.NaiveMode = false;
+            //ExpManager.NaiveMode = false;
             menuGameObject.SetActive(false);
             mainMenuGO.SetActive(true); //TODO Debatable
             expMenuText.text = "Our Ball Exp";
@@ -36,18 +35,18 @@ public class MenuScript : MonoBehaviour {
             }
         });
 
-        naiveButton.onClick.AddListener(() => {
-            ExperimentLog.Log("Pressed Naive Mode", "Menu");
-            ExpManager.NaiveMode = true;
-            menuGameObject.SetActive(false);
-            mainMenuGO.SetActive(true); //TODO Debatable
-            Time.timeScale = 1;
-            expMenuText.text = "Naive Ball Exp";
-            if (!SceneManager.GetActiveScene().name.Equals("Master"))
-            {
-                SceneManager.LoadSceneAsync("Master", LoadSceneMode.Single);
-            }
-        });
+        //naiveButton.onClick.AddListener(() => {
+        //    ExperimentLog.Log("Pressed Naive Mode", "Menu");
+        //    //ExpManager.NaiveMode = true;
+        //    menuGameObject.SetActive(false);
+        //    mainMenuGO.SetActive(true); //TODO Debatable
+        //    Time.timeScale = 1;
+        //    expMenuText.text = "Naive Ball Exp";
+        //    if (!SceneManager.GetActiveScene().name.Equals("Master"))
+        //    {
+        //        SceneManager.LoadSceneAsync("Master", LoadSceneMode.Single);
+        //    }
+        //});
 
         freeButton.onClick.AddListener(() => {
             Time.timeScale = 1;

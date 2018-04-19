@@ -46,10 +46,10 @@ public class BallScript : MonoBehaviour
     {
         //DEBUG ONLY
         //Manual Keyboard Control of Ball
-        float movehorizontal = Input.GetAxis("Horizontal");
-        float movevertical = Input.GetAxis("Vertical");
-        Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
-        rb.AddForce(movement * inputSpeed);
+        //float movehorizontal = Input.GetAxis("Horizontal");
+        //float movevertical = Input.GetAxis("Vertical");
+        //Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
+        //rb.AddForce(movement * inputSpeed);
         //END DEBUG
 
         //Check ball state
