@@ -68,12 +68,9 @@ public class BallScript : MonoBehaviour
             GameUtils.playState == GameUtils.GamePlayState.ExpMode)
         {
             StartBallSound();
-            //Change rolling sounds based on speed of ball
-            //ballSoundSource.volume = GameUtils.Scale(0, maxspeed, 0, 1, Math.Abs(rb.velocity.magnitude));
 
-            //Change and limit pitch change on ball
-            ballSoundSource.pitch = GameUtils.Scale(0, maxspeed, 0.8f, 1.25f, Math.Abs(rb.velocity.magnitude));
-
+            DynamicAudioChanges();
+            
             //Add a speed limit to the ball
             Vector3 oldVel = rb.velocity;
             rb.velocity = Vector3.ClampMagnitude(oldVel, maxspeed);
@@ -97,8 +94,18 @@ public class BallScript : MonoBehaviour
             Destroy(GetComponent<Rigidbody>());
         }
 
-        //Dynamic LowPass Audio filter snapshot changingqq
-        if(rb.position.z > 0)
+    }
+
+    private void DynamicAudioChanges()
+    {
+        //Change and limit pitch change on ball
+        ballSoundSource.pitch = GameUtils.Scale(0, maxspeed, 0.8f, 1.25f, Math.Abs(rb.velocity.magnitude));
+
+        //Change rolling sounds based on speed of ball
+        //ballSoundSource.volume = GameUtils.Scale(0, maxspeed, 0, 1, Math.Abs(rb.velocity.magnitude));
+
+        //Dynamic LowPass Audio filter snapshot changing when ball passes halfway point
+        if (rb.position.z > 0)
         {
             farSideSnap.TransitionTo(0.1f);
         }
@@ -107,6 +114,27 @@ public class BallScript : MonoBehaviour
             closeSideSnap.TransitionTo(0.1f);
         }
 
+        //Change Stereo Pan in buckets
+        if (rb.position.x < -30)
+        {
+            ballSoundSource.panStereo = -1;
+        }
+        else if (rb.position.x >= -30 && rb.position.x < -10)
+        {
+            ballSoundSource.panStereo = -0.5f;
+        }
+        else if (rb.position.x >= -10 && rb.position.x < 10)
+        {
+            ballSoundSource.panStereo = 0;
+        }
+        else if (rb.position.x >= 10 && rb.position.x < 30)
+        {
+            ballSoundSource.panStereo = 0.5f;
+        }
+        else if (rb.position.x >= 30)
+        {
+            ballSoundSource.panStereo = 1;
+        }
     }
 
     public void BallSet()

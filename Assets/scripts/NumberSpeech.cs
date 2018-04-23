@@ -67,7 +67,8 @@ public class NumberSpeech : MonoBehaviour
     public static AudioSource PlayAudio(string arg)
     {
         AudioSource selectedAudio;
-        if (scoreAudioMap.TryGetValue(arg, out selectedAudio))
+        string lowArg = arg.ToLower();
+        if (scoreAudioMap.TryGetValue(lowArg, out selectedAudio))
         {
             selectedAudio.Play();
         }

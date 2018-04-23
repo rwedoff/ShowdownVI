@@ -22,6 +22,9 @@ public class ExpManager : MonoBehaviour
     public Text clockText;
     public GameObject globalSpeechGameObject;
     public GameObject menuGameObject;
+    public bool IsTactileDouse;
+    public bool IsAnnounceBall;
+    public bool IsCorrectionHints;
 
     public static float TableEdge { get; private set; }
     public static float CenterX { get; private set; }
@@ -65,6 +68,15 @@ public class ExpManager : MonoBehaviour
     private bool newBallOk;
     private DateTime startTime;
     private bool canPressButton;
+    private AudioSource startLeftAudio;
+    private AudioSource startCenterAudio;
+    private AudioSource startRightAudio;
+    private AudioSource endFarLeftAudio;
+    private AudioSource endCenterLeftAudio;
+    private AudioSource endCenterAudio;
+    private AudioSource endCenterRightAudio;
+    private AudioSource endFarRightAudio;
+    private AudioSource andIsAudio;
 
     private void Start()
     {
@@ -100,6 +112,21 @@ public class ExpManager : MonoBehaviour
         gamePoints = 0;
         canPressStartButton = true;
         expState = ExpState.menus;
+
+        SetupChildAudio();
+    }
+
+    private void SetupChildAudio()
+    {
+        startLeftAudio = transform.Find("Start1").GetComponent<AudioSource>();
+        startCenterAudio = transform.Find("Start2").GetComponent<AudioSource>();
+        startRightAudio = transform.Find("Start3").GetComponent<AudioSource>();
+        endFarLeftAudio = transform.Find("End1").GetComponent<AudioSource>();
+        endCenterLeftAudio = transform.Find("End2").GetComponent<AudioSource>();
+        endCenterAudio = transform.Find("End3").GetComponent<AudioSource>();
+        endCenterRightAudio = transform.Find("End4").GetComponent<AudioSource>();
+        endFarRightAudio = transform.Find("End5").GetComponent<AudioSource>();
+        andIsAudio = transform.Find("Middle Line").GetComponent<AudioSource>();
     }
 
     private void Update()
@@ -132,7 +159,11 @@ public class ExpManager : MonoBehaviour
         }
 
         CheckHitResult();
-        TactileDouse();
+
+        if (IsTactileDouse)
+        {
+            TactileDouse();
+        }
     }
 
     private void CheckHitResult()
@@ -181,7 +212,10 @@ public class ExpManager : MonoBehaviour
             {
                 maxDistance = -130;
             }
-            if (Time.time > oldTime + 8)
+
+            int timerInterval = IsAnnounceBall ? 10 : 8;
+
+            if (Time.time > oldTime + timerInterval)
             {
                 oldTime = Time.time;
                 expState = ExpState.noBall;
@@ -205,30 +239,26 @@ public class ExpManager : MonoBehaviour
             {
                 JoyconController.RumbleJoycon(160, 320, 0.3f, 200);
             }   
-            else if( absDist < 10)
+            else if(absDist < 10)
             {
                 JoyconController.RumbleJoycon(160, 320, 0.9f, 200);
             }
-            //if (Math.Abs(batPos.x - GetActualXDestination()) < 10)
-            //{
-            //    JoyconController.RumbleJoycon(160, 320, 0.6f, 200);
-            //}
         }
     }
     
     private float GetActualXDestination()
     {
-        var bt = _currBallPath.BallType;
+        var bt = _currBallPath.BallOriginType;
         int startXPos = 0;
-        if (bt == BallType.center)
+        if (bt == BallOriginType.center)
         {
             startXPos = centerStartXPos;
         }
-        else if (bt == BallType.left)
+        else if (bt == BallOriginType.left)
         {
             startXPos = leftStartXPos;
         }
-        else if (bt == BallType.right)
+        else if (bt == BallOriginType.right)
         {
             startXPos = rightStartXPos;
         }
@@ -288,7 +318,7 @@ public class ExpManager : MonoBehaviour
     /// <summary>
     /// Spawns a new ball based on the 30 balls of the experiment list.
     /// </summary>
-    private void SpawnBall()
+    private IEnumerator SpawnBall()
     {
         if (!canPressStartButton && playerReady) //Double check to present sending two balls in transition
         {
@@ -300,10 +330,70 @@ public class ExpManager : MonoBehaviour
             if (!isNewBallAvail)
             {
                 FinishExp();
-                return;
+                yield break;
             }
 
             _currBallPath = ballPositions[_currBallType];
+
+            if (IsAnnounceBall)
+            {
+                //TODO announce score!
+                //SAY This next ball is coming from the...
+                if (_currBallPath.BallOriginType == BallOriginType.left) //Left Start
+                {
+                    Debug.Log("Left Start");
+                    startLeftAudio.Play();
+                    yield return new WaitForSeconds(startLeftAudio.clip.length);
+                }
+                else if (_currBallPath.BallOriginType == BallOriginType.center) //Center Start
+                {
+                    Debug.Log("Center Start");
+                    startCenterAudio.Play();
+                    yield return new WaitForSeconds(startCenterAudio.clip.length);
+                }
+                else if (_currBallPath.BallOriginType == BallOriginType.right) //Right Start
+                {
+                    Debug.Log("Right Start");
+                    startRightAudio.Play();
+                    yield return new WaitForSeconds(startRightAudio.clip.length);
+                }
+
+                //SAY And is going to the...
+                andIsAudio.Play();
+                yield return new WaitForSeconds(andIsAudio.clip.length);
+
+                if (_currBallPath.BallDestType == BallDestType.farLeft)
+                {
+                    Debug.Log("Far Left");
+                    endFarLeftAudio.Play();
+                    yield return new WaitForSeconds(endFarLeftAudio.clip.length);
+                }
+                else if (_currBallPath.BallDestType == BallDestType.centerLeft)
+                {
+                    Debug.Log("Center Left");
+                    endCenterLeftAudio.Play();
+                    yield return new WaitForSeconds(endCenterLeftAudio.clip.length);
+                }
+                else if (_currBallPath.BallDestType == BallDestType.center)
+                {
+                    Debug.Log("Center");
+                    endCenterAudio.Play();
+                    yield return new WaitForSeconds(endCenterAudio.clip.length);
+                }
+                else if (_currBallPath.BallDestType == BallDestType.centerRight)
+                {
+                    Debug.Log("Center Right");
+                    endCenterRightAudio.Play();
+                    yield return new WaitForSeconds(endCenterRightAudio.clip.length);
+                }
+                else if (_currBallPath.BallDestType == BallDestType.farRight)
+                {
+                    Debug.Log("Far Right");
+                    endFarRightAudio.Play();
+                    yield return new WaitForSeconds(endFarRightAudio.clip.length);
+                }
+            }
+
             _currentBall = Instantiate(ourBall, _currBallPath.Origin, new Quaternion());
             expState = ExpState.ballInPlay;
             Rigidbody rb = _currentBall.GetComponent<Rigidbody>();
@@ -524,19 +614,20 @@ public class ExpManager : MonoBehaviour
     /// <returns></returns>
     private IEnumerator NextBallComing()
     {
-        if((UnityEngine.Random.Range(0,3) == 0 && _currBallNumber != -1)
-            || _currBallNumber == 29) //Randomly 1/3 of the time say how many points
+        if ((UnityEngine.Random.Range(0, 3) == 0 && _currBallNumber != -1)
+                || _currBallNumber == 29) //Randomly 1/3 of the time say how many points
         {
             ExperimentLog.Log("Read the Score");
             StartCoroutine(numberSpeech.PlayExpPointsAudio(gamePoints));
             yield return new WaitForSeconds(3); //Wait 3 seconds for points audio to finish
         }
-        else
+        else if (!IsAnnounceBall)
         {
             AudioSource aud = NumberSpeech.PlayAudio("nextball");
             yield return new WaitForSeconds(aud.clip.length + 0.2f);
         }
-        SpawnBall();
+
+        StartCoroutine(SpawnBall());
         timerStarted = true;
         oldTime = Time.time;
         newBallOk = true;
@@ -578,31 +669,36 @@ public class ExpManager : MonoBehaviour
         {
             Origin = new Vector3(leftStartXPos, 5, 110),
             Destination = new Vector3(0, 5, -110),
-            BallType = BallType.left
+            BallOriginType = BallOriginType.left,
+            BallDestType = BallDestType.farLeft
         });
         ballPositions.Add(1, new BallPath
         {
             Origin = new Vector3(leftStartXPos, 5, 110),
             Destination = new Vector3(11, 5, -110),
-            BallType = BallType.left
+            BallOriginType = BallOriginType.left,
+            BallDestType = BallDestType.centerLeft
         });
         ballPositions.Add(2, new BallPath
         {
             Origin = new Vector3(leftStartXPos, 5, 110),
             Destination = new Vector3(21, 5, -110),
-            BallType = BallType.left
+            BallOriginType = BallOriginType.left,
+            BallDestType = BallDestType.center
         });
         ballPositions.Add(3, new BallPath
         {
             Origin = new Vector3(leftStartXPos, 5, 110),
             Destination = new Vector3(31, 5, -110),
-            BallType = BallType.left
+            BallOriginType = BallOriginType.left,
+            BallDestType = BallDestType.centerRight
         });
         ballPositions.Add(4, new BallPath
         {
             Origin = new Vector3(leftStartXPos, 5, 110),
             Destination = new Vector3(42, 5, -110),
-            BallType = BallType.left
+            BallOriginType = BallOriginType.left,
+            BallDestType = BallDestType.farRight
         });
 
         //Center Start
@@ -610,63 +706,73 @@ public class ExpManager : MonoBehaviour
         {
             Origin = new Vector3(centerStartXPos, 5, 110),
             Destination = new Vector3(-21, 5, -110),
-            BallType = BallType.center
+            BallOriginType = BallOriginType.center,
+            BallDestType = BallDestType.farLeft
         });
         ballPositions.Add(6, new BallPath
         {
             Origin = new Vector3(centerStartXPos, 5, 110),
             Destination = new Vector3(-11, 5, -110),
-            BallType = BallType.center
+            BallOriginType = BallOriginType.center,
+            BallDestType = BallDestType.centerLeft
         });
         ballPositions.Add(7, new BallPath
         {
             Origin = new Vector3(centerStartXPos, 5, 110),
             Destination = new Vector3(0, 5, -110),
-            BallType = BallType.center
+            BallOriginType = BallOriginType.center,
+            BallDestType = BallDestType.center
         });
         ballPositions.Add(8, new BallPath
         {
             Origin = new Vector3(centerStartXPos, 5, 110),
             Destination = new Vector3(11, 5, -110),
-            BallType = BallType.center
+            BallOriginType = BallOriginType.center,
+            BallDestType = BallDestType.centerRight
         });
         ballPositions.Add(9, new BallPath
         {
             Origin = new Vector3(centerStartXPos, 5, 110),
             Destination = new Vector3(21, 5, -110),
-            BallType = BallType.center
+            BallOriginType = BallOriginType.center,
+            BallDestType = BallDestType.farRight
         });
 
         //Right Start
-        ballPositions.Add(14, new BallPath
+        ballPositions.Add(10, new BallPath
         {
             Origin = new Vector3(rightStartXPos, 5, 110),
-            Destination = new Vector3(0, 5, -110),
-            BallType = BallType.right
-        });
-        ballPositions.Add(13, new BallPath
-        {
-            Origin = new Vector3(rightStartXPos, 5, 110),
-            Destination = new Vector3(-11, 5, -110),
-            BallType = BallType.right
-        });
-        ballPositions.Add(12, new BallPath
-        {
-            Origin = new Vector3(rightStartXPos, 5, 110),
-            Destination = new Vector3(-21, 5, -110),
-            BallType = BallType.right
+            Destination = new Vector3(-42, 5, -110),
+            BallOriginType = BallOriginType.right,
+            BallDestType = BallDestType.farLeft
         });
         ballPositions.Add(11, new BallPath
         {
             Origin = new Vector3(rightStartXPos, 5, 110),
             Destination = new Vector3(-31, 5, -110),
-            BallType = BallType.right
+            BallOriginType = BallOriginType.right,
+            BallDestType = BallDestType.centerLeft
         });
-        ballPositions.Add(10, new BallPath
+        ballPositions.Add(12, new BallPath
         {
             Origin = new Vector3(rightStartXPos, 5, 110),
-            Destination = new Vector3(-42, 5, -110),
-            BallType = BallType.right
+            Destination = new Vector3(-21, 5, -110),
+            BallOriginType = BallOriginType.right,
+            BallDestType = BallDestType.center
+        });
+        ballPositions.Add(13, new BallPath
+        {
+            Origin = new Vector3(rightStartXPos, 5, 110),
+            Destination = new Vector3(-11, 5, -110),
+            BallOriginType = BallOriginType.right,
+            BallDestType = BallDestType.centerRight
+        });
+        ballPositions.Add(14, new BallPath
+        {
+            Origin = new Vector3(rightStartXPos, 5, 110),
+            Destination = new Vector3(0, 5, -110),
+            BallOriginType = BallOriginType.right,
+            BallDestType = BallDestType.farRight
         });
     }
 
@@ -724,6 +830,8 @@ public class BallPath
 {
     public Vector3 Origin { get; set; }
     public Vector3 Destination { get; set; }
-    public BallType BallType { get; set; }
+    public BallOriginType BallOriginType { get; set; }
+    public BallDestType BallDestType { get; set; }
 }
-public enum BallType { left, center, right }
+public enum BallOriginType { left, center, right }
+public enum BallDestType { farLeft, centerLeft, center, centerRight, farRight }
