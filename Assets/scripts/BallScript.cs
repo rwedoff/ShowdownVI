@@ -70,7 +70,7 @@ public class BallScript : MonoBehaviour
             StartBallSound();
 
             DynamicAudioChanges();
-            
+
             //Add a speed limit to the ball
             Vector3 oldVel = rb.velocity;
             rb.velocity = Vector3.ClampMagnitude(oldVel, maxspeed);

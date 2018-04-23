@@ -59,6 +59,8 @@ public class ExpManager : MonoBehaviour
     private const int rightStartXPos = 42;
     private const int leftStartXPos = -42;
     private const int  centerStartXPos = 0;
+    private Vector3 snapShotBallPos;
+    private Vector3 snapShotBatPos;
 
     /// <summary>
     /// AudioSources
@@ -77,6 +79,14 @@ public class ExpManager : MonoBehaviour
     private AudioSource endCenterRightAudio;
     private AudioSource endFarRightAudio;
     private AudioSource andIsAudio;
+    private AudioSource tippedAudio;
+    private AudioSource tooForward;
+    private AudioSource tooBack;
+    private AudioSource reachRight;
+    private AudioSource tooRight;
+    private AudioSource tooLeft;
+    private AudioSource reachLeft;
+    private AudioSource middleAudio;
 
     private void Start()
     {
@@ -121,12 +131,25 @@ public class ExpManager : MonoBehaviour
         startLeftAudio = transform.Find("Start1").GetComponent<AudioSource>();
         startCenterAudio = transform.Find("Start2").GetComponent<AudioSource>();
         startRightAudio = transform.Find("Start3").GetComponent<AudioSource>();
-        endFarLeftAudio = transform.Find("End1").GetComponent<AudioSource>();
+        var farLeftAudioSources = transform.Find("End1").GetComponents<AudioSource>();
+        endFarLeftAudio = farLeftAudioSources[0];
+        reachLeft = farLeftAudioSources[1];
+        tooLeft = farLeftAudioSources[2];
         endCenterLeftAudio = transform.Find("End2").GetComponent<AudioSource>();
-        endCenterAudio = transform.Find("End3").GetComponent<AudioSource>();
+        var centerAudioSources = transform.Find("End3").GetComponents<AudioSource>();
+        endCenterAudio = centerAudioSources[0];
+        middleAudio = centerAudioSources[1];
+        tippedAudio = centerAudioSources[2];
         endCenterRightAudio = transform.Find("End4").GetComponent<AudioSource>();
-        endFarRightAudio = transform.Find("End5").GetComponent<AudioSource>();
-        andIsAudio = transform.Find("Middle Line").GetComponent<AudioSource>();
+        var farRightAudioSources = transform.Find("End5").GetComponents<AudioSource>();
+        endFarRightAudio = farRightAudioSources[0];
+        reachRight = farRightAudioSources[1];
+        tooRight = farRightAudioSources[2];
+        var middleAudioSources = transform.Find("Middle Line").GetComponents<AudioSource>();
+        andIsAudio = middleAudioSources[0];
+        tooForward = middleAudioSources[1];
+        tooBack = middleAudioSources[2];
+
     }
 
     private void Update()
@@ -163,6 +186,11 @@ public class ExpManager : MonoBehaviour
         if (IsTactileDouse)
         {
             TactileDouse();
+        }
+
+        if (IsCorrectionHints)
+        {
+            SaveSnapshotOfGame();
         }
     }
 
@@ -224,13 +252,25 @@ public class ExpManager : MonoBehaviour
         }
     }
 
+    private void SaveSnapshotOfGame()
+    {
+        if(_currentBall != null)
+        {
+            if(_currentBall.transform.position.z < -75 && _currentBall.transform.position.z > - 85)
+            {
+                snapShotBallPos = _currentBall.transform.position;
+                snapShotBatPos = batObj.transform.position;
+            }
+        }
+    }
+
     private void TactileDouse()
     {
         Vector3 batPos = batObj.transform.position;
         if (_currentBall != null)
         {
             float absDist = Math.Abs(batPos.x - GetActualXDestination());
-            float distAwayFromDest = 100 - absDist;
+            //float distAwayFromDest = 100 - absDist;
             if (absDist < 30 && absDist > 20)
             {
                 JoyconController.RumbleJoycon(160, 320, 0.1f, 200);
@@ -445,7 +485,7 @@ public class ExpManager : MonoBehaviour
                 Destroy(_currentBall);
                 if (_currBallNumber != -1)
                 {
-                    StartCoroutine(hitres != HitRes.miss ? NextBallHit() : NextBallMissed());
+                    StartCoroutine(hitres != HitRes.miss ? NextBallHit() : NextBallMissed(hitres));
                 }
                 else
                 {
@@ -596,7 +636,7 @@ public class ExpManager : MonoBehaviour
     /// Audio for a missed ball and starts a new ball
     /// </summary>
     /// <returns></returns>
-    private IEnumerator NextBallMissed()
+    private IEnumerator NextBallMissed(HitRes hitRes)
     {
         //Randomly, 1/3 of the time, play a random lose voice sound effect
         if (UnityEngine.Random.Range(0, 2) == 0)
@@ -605,7 +645,83 @@ public class ExpManager : MonoBehaviour
             _audioSources[rand].Play();
             yield return new WaitForSeconds(_audioSources[rand].clip.length);
         }
+
+        if (IsCorrectionHints)
+        {
+            yield return ReadHitCorrection(hitRes);
+        }
+
         yield return NextBallComing();
+    }
+
+    private IEnumerator ReadHitCorrection(HitRes hitRes)
+    {
+        float absDist = Math.Abs(snapShotBatPos.x - snapShotBallPos.x);
+        float distAway = 100 - absDist;
+        if (hitRes == HitRes.hitNotPastHalf)
+        {
+            //You must have just tipped it. Try to hit the ball forward
+            tippedAudio.Play();
+            yield return new WaitForSeconds(tippedAudio.clip.length);
+            Debug.Log("Tipped it");
+        }
+        else if (distAway < 10)
+        {
+            if (snapShotBatPos.z > snapShotBallPos.z)
+            {
+                //Reached too far forward too soon.
+                tooForward.Play();
+                yield return new WaitForSeconds(tooForward.clip.length);
+                Debug.Log("Reached too far forward too soon");
+            }
+            else
+            {
+                //Reached too far back
+                tooBack.Play();
+                yield return new WaitForSeconds(tooBack.clip.length);
+                Debug.Log("Reached too far back");
+            }
+        }
+        else if (snapShotBallPos.x > 0 && snapShotBallPos.x > snapShotBatPos.x)
+        {
+            //Reach further to the right
+            float distOff = Math.Abs(snapShotBatPos.x) + Math.Abs(snapShotBallPos.x);
+            reachRight.Play();
+            yield return new WaitForSeconds(reachRight.clip.length);
+            Debug.Log("Reach futher to the right by " + distOff);
+        }
+        else if (snapShotBallPos.x > 0 && snapShotBallPos.x < snapShotBatPos.x)
+        {
+            //Too far to the right
+            float distOff = snapShotBatPos.x - snapShotBallPos.x;
+            tooRight.Play();
+            yield return new WaitForSeconds(tooRight.clip.length);
+            Debug.Log("You Reached too far to the right by " + distOff);
+        }
+        else if (snapShotBallPos.x < 0 && snapShotBallPos.x > snapShotBatPos.x)
+        {
+            //Too far to the left
+            float distOff = Math.Abs(snapShotBatPos.x) - Math.Abs(snapShotBallPos.x);
+            tooLeft.Play();
+            yield return new WaitForSeconds(tooLeft.clip.length);
+            Debug.Log("You Reached too far to the left by " + distOff);
+        }
+        else if (snapShotBallPos.x < 0 && snapShotBallPos.x < snapShotBatPos.x)
+        {
+            //Reach futher to the left
+            float distOff = Math.Abs(snapShotBallPos.x) - Math.Abs(snapShotBatPos.x);
+            reachLeft.Play();
+            yield return new WaitForSeconds(reachLeft.clip.length);
+            Debug.Log("Reach futher to the left by " + distOff);
+        }
+        else if (snapShotBallPos.x == 0)
+        {
+            //Put it right in the middle
+            middleAudio.Play();
+            yield return new WaitForSeconds(middleAudio.clip.length);
+            Debug.Log("Put your hand right in the middle of your body and protect the goal.");
+        }
+        yield break;
     }
 
     /// <summary>
@@ -627,7 +743,7 @@ public class ExpManager : MonoBehaviour
             yield return new WaitForSeconds(aud.clip.length + 0.2f);
         }
 
-        StartCoroutine(SpawnBall());
+        yield return SpawnBall();
         timerStarted = true;
         oldTime = Time.time;
         newBallOk = true;
