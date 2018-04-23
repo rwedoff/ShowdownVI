@@ -53,7 +53,7 @@ public class ExpManager : MonoBehaviour
     private Timer globalTimer;
     private bool canPressStartButton;
     private int gamePoints;
-    private enum HitRes { miss = 0, hitNotPastHalf = 1, pastHalfHit = 2, goal = 3 }
+    private enum HitRes { miss = 0, tipped=1, hitNotPastHalf = 2, pastHalfHit = 3, goal = 4  }
     private HitRes thisHitres;
     private NumberSpeech numberSpeech;
     private const int rightStartXPos = 42;
@@ -210,7 +210,14 @@ public class ExpManager : MonoBehaviour
         if (GoalScript.ExpBallLose)
         {
             GoalScript.ExpBallLose = false;
-            StartNextBall(HitRes.miss);
+            if (BallScript.BallHitOnce || NaiveBallScript.BallHitOnce)
+            {
+                StartNextBall(HitRes.tipped);
+            }
+            else
+            {
+                StartNextBall(HitRes.miss);
+            }
         }
         if (GoalScript.ExpBallWin)
         {
@@ -234,7 +241,6 @@ public class ExpManager : MonoBehaviour
                 {
                     return;
                 }
-
             }
             else
             {
@@ -247,7 +253,7 @@ public class ExpManager : MonoBehaviour
             {
                 oldTime = Time.time;
                 expState = ExpState.noBall;
-                StartNextBall(DetermineHit(_currentBall));
+                StartNextBall(DetermineHitRes(_currentBall));
             }
         }
     }
@@ -346,11 +352,15 @@ public class ExpManager : MonoBehaviour
     /// </summary>
     /// <param name="ball"></param>
     /// <returns>HitRes.miss or HitRes.hit</returns>
-    private HitRes DetermineHit(GameObject ball)
+    private HitRes DetermineHitRes(GameObject ball)
     {
         if((BallScript.BallHitOnce || NaiveBallScript.BallHitOnce) && maxDistance > -50)
         {
             return HitRes.hitNotPastHalf;
+        }
+        else if ((BallScript.BallHitOnce || NaiveBallScript.BallHitOnce))
+        {
+            return HitRes.tipped;
         }
         return HitRes.miss;
     }
@@ -377,58 +387,47 @@ public class ExpManager : MonoBehaviour
 
             if (IsAnnounceBall)
             {
-                //TODO announce score!
-                //SAY This next ball is coming from the...
                 if (_currBallPath.BallOriginType == BallOriginType.left) //Left Start
                 {
-                    Debug.Log("Left Start");
                     startLeftAudio.Play();
                     yield return new WaitForSeconds(startLeftAudio.clip.length);
                 }
                 else if (_currBallPath.BallOriginType == BallOriginType.center) //Center Start
                 {
-                    Debug.Log("Center Start");
                     startCenterAudio.Play();
                     yield return new WaitForSeconds(startCenterAudio.clip.length);
                 }
                 else if (_currBallPath.BallOriginType == BallOriginType.right) //Right Start
                 {
-                    Debug.Log("Right Start");
                     startRightAudio.Play();
                     yield return new WaitForSeconds(startRightAudio.clip.length);
                 }
 
-                //SAY And is going to the...
                 andIsAudio.Play();
                 yield return new WaitForSeconds(andIsAudio.clip.length);
 
                 if (_currBallPath.BallDestType == BallDestType.farLeft)
                 {
-                    Debug.Log("Far Left");
                     endFarLeftAudio.Play();
                     yield return new WaitForSeconds(endFarLeftAudio.clip.length);
                 }
                 else if (_currBallPath.BallDestType == BallDestType.centerLeft)
                 {
-                    Debug.Log("Center Left");
                     endCenterLeftAudio.Play();
                     yield return new WaitForSeconds(endCenterLeftAudio.clip.length);
                 }
                 else if (_currBallPath.BallDestType == BallDestType.center)
                 {
-                    Debug.Log("Center");
                     endCenterAudio.Play();
                     yield return new WaitForSeconds(endCenterAudio.clip.length);
                 }
                 else if (_currBallPath.BallDestType == BallDestType.centerRight)
                 {
-                    Debug.Log("Center Right");
                     endCenterRightAudio.Play();
                     yield return new WaitForSeconds(endCenterRightAudio.clip.length);
                 }
                 else if (_currBallPath.BallDestType == BallDestType.farRight)
                 {
-                    Debug.Log("Far Right");
                     endFarRightAudio.Play();
                     yield return new WaitForSeconds(endFarRightAudio.clip.length);
                 }
@@ -485,7 +484,7 @@ public class ExpManager : MonoBehaviour
                 Destroy(_currentBall);
                 if (_currBallNumber != -1)
                 {
-                    StartCoroutine(hitres != HitRes.miss ? NextBallHit() : NextBallMissed(hitres));
+                    StartCoroutine((hitres != HitRes.miss && hitres != HitRes.tipped) ? NextBallHit() : NextBallMissed(hitres));
                 }
                 else
                 {
@@ -592,7 +591,7 @@ public class ExpManager : MonoBehaviour
         //Append Exp result headers
         sb.AppendLine("Event_Time" + "," + "Timer_Time" + "," + "Participant_Id" + ","
             + "Ball_Number" + "," + "Ball_Type" + ", " + "Ball_Speed" + "," + 
-            "Ball_Result [Miss->0 : MaybeHit->1 : HitPastHalf->2 : Goal->3]" + "," + "Game_Points");
+            "Ball_Result [Miss->0|1 : MaybeHit->2 : HitPastHalf->3 : Goal->4]" + "," + "Game_Points");
         //Append Exp results
         foreach (var data in expResults)
         {
@@ -658,12 +657,10 @@ public class ExpManager : MonoBehaviour
     {
         float absDist = Math.Abs(snapShotBatPos.x - snapShotBallPos.x);
         float distAway = 100 - absDist;
-        if (hitRes == HitRes.hitNotPastHalf)
+        if (hitRes == HitRes.tipped)
         {
-            //You must have just tipped it. Try to hit the ball forward
             tippedAudio.Play();
             yield return new WaitForSeconds(tippedAudio.clip.length);
-            Debug.Log("Tipped it");
         }
         else if (distAway < 10)
         {
@@ -672,14 +669,12 @@ public class ExpManager : MonoBehaviour
                 //Reached too far forward too soon.
                 tooForward.Play();
                 yield return new WaitForSeconds(tooForward.clip.length);
-                Debug.Log("Reached too far forward too soon");
             }
             else
             {
                 //Reached too far back
                 tooBack.Play();
                 yield return new WaitForSeconds(tooBack.clip.length);
-                Debug.Log("Reached too far back");
             }
         }
         else if (snapShotBallPos.x > 0 && snapShotBallPos.x > snapShotBatPos.x)
@@ -688,7 +683,6 @@ public class ExpManager : MonoBehaviour
             float distOff = Math.Abs(snapShotBatPos.x) + Math.Abs(snapShotBallPos.x);
             reachRight.Play();
             yield return new WaitForSeconds(reachRight.clip.length);
-            Debug.Log("Reach futher to the right by " + distOff);
         }
         else if (snapShotBallPos.x > 0 && snapShotBallPos.x < snapShotBatPos.x)
         {
@@ -696,7 +690,6 @@ public class ExpManager : MonoBehaviour
             float distOff = snapShotBatPos.x - snapShotBallPos.x;
             tooRight.Play();
             yield return new WaitForSeconds(tooRight.clip.length);
-            Debug.Log("You Reached too far to the right by " + distOff);
         }
         else if (snapShotBallPos.x < 0 && snapShotBallPos.x > snapShotBatPos.x)
         {
@@ -704,7 +697,6 @@ public class ExpManager : MonoBehaviour
             float distOff = Math.Abs(snapShotBatPos.x) - Math.Abs(snapShotBallPos.x);
             tooLeft.Play();
             yield return new WaitForSeconds(tooLeft.clip.length);
-            Debug.Log("You Reached too far to the left by " + distOff);
         }
         else if (snapShotBallPos.x < 0 && snapShotBallPos.x < snapShotBatPos.x)
         {
@@ -712,14 +704,12 @@ public class ExpManager : MonoBehaviour
             float distOff = Math.Abs(snapShotBallPos.x) - Math.Abs(snapShotBatPos.x);
             reachLeft.Play();
             yield return new WaitForSeconds(reachLeft.clip.length);
-            Debug.Log("Reach futher to the left by " + distOff);
         }
         else if (snapShotBallPos.x == 0)
         {
             //Put it right in the middle
             middleAudio.Play();
             yield return new WaitForSeconds(middleAudio.clip.length);
-            Debug.Log("Put your hand right in the middle of your body and protect the goal.");
         }
         yield break;
     }
