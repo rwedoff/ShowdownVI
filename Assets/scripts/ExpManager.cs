@@ -387,6 +387,7 @@ public class ExpManager : MonoBehaviour
 
             if (IsAnnounceBall)
             {
+                //Play where the ball is starting
                 if (_currBallPath.BallOriginType == BallOriginType.left) //Left Start
                 {
                     startLeftAudio.Play();
@@ -403,61 +404,75 @@ public class ExpManager : MonoBehaviour
                     yield return new WaitForSeconds(startRightAudio.clip.length);
                 }
 
-                andIsAudio.Play();
-                yield return new WaitForSeconds(andIsAudio.clip.length);
+                //Play And Is Going to
+                if (!canPressStartButton && playerReady)
+                { //Check again to not send ball in transition.
+                    andIsAudio.Play();
+                    yield return new WaitForSeconds(andIsAudio.clip.length);
+                }
+                else { yield break; }
 
-                if (_currBallPath.BallDestType == BallDestType.farLeft)
-                {
-                    endFarLeftAudio.Play();
-                    yield return new WaitForSeconds(endFarLeftAudio.clip.length);
+                //Play the destination
+                if (!canPressStartButton && playerReady)
+                { //Check again to not send ball in transition.
+                    if (_currBallPath.BallDestType == BallDestType.farLeft)
+                    {
+                        endFarLeftAudio.Play();
+                        yield return new WaitForSeconds(endFarLeftAudio.clip.length);
+                    }
+                    else if (_currBallPath.BallDestType == BallDestType.centerLeft)
+                    {
+                        endCenterLeftAudio.Play();
+                        yield return new WaitForSeconds(endCenterLeftAudio.clip.length);
+                    }
+                    else if (_currBallPath.BallDestType == BallDestType.center)
+                    {
+                        endCenterAudio.Play();
+                        yield return new WaitForSeconds(endCenterAudio.clip.length);
+                    }
+                    else if (_currBallPath.BallDestType == BallDestType.centerRight)
+                    {
+                        endCenterRightAudio.Play();
+                        yield return new WaitForSeconds(endCenterRightAudio.clip.length);
+                    }
+                    else if (_currBallPath.BallDestType == BallDestType.farRight)
+                    {
+                        endFarRightAudio.Play();
+                        yield return new WaitForSeconds(endFarRightAudio.clip.length);
+                    }
                 }
-                else if (_currBallPath.BallDestType == BallDestType.centerLeft)
-                {
-                    endCenterLeftAudio.Play();
-                    yield return new WaitForSeconds(endCenterLeftAudio.clip.length);
-                }
-                else if (_currBallPath.BallDestType == BallDestType.center)
-                {
-                    endCenterAudio.Play();
-                    yield return new WaitForSeconds(endCenterAudio.clip.length);
-                }
-                else if (_currBallPath.BallDestType == BallDestType.centerRight)
-                {
-                    endCenterRightAudio.Play();
-                    yield return new WaitForSeconds(endCenterRightAudio.clip.length);
-                }
-                else if (_currBallPath.BallDestType == BallDestType.farRight)
-                {
-                    endFarRightAudio.Play();
-                    yield return new WaitForSeconds(endFarRightAudio.clip.length);
-                }
+                else { yield break; }
             }
 
-            _currentBall = Instantiate(ourBall, _currBallPath.Origin, new Quaternion());
-            expState = ExpState.ballInPlay;
-            Rigidbody rb = _currentBall.GetComponent<Rigidbody>();
 
-            if (ballSpeedDropdown.value == 0) //Slow
+            if (!canPressStartButton && playerReady) //Check again to not send ball in transition.
             {
-                _currBallSpeed = 40; //Was 75 or 40
-            }
-            else if (ballSpeedDropdown.value == 1) //Medium
-            {
-                _currBallSpeed = 125;
-            }
-            else if (ballSpeedDropdown.value == 2) //Fast
-            {
-                _currBallSpeed = 250;
-            }
-            else if (ballSpeedDropdown.value == 3) //Random
-            {
-                _currBallSpeed = UnityEngine.Random.Range(75, 250);
-            }
+                _currentBall = Instantiate(ourBall, _currBallPath.Origin, new Quaternion());
+                expState = ExpState.ballInPlay;
+                Rigidbody rb = _currentBall.GetComponent<Rigidbody>();
 
-            //Play Click sound
-            _currentBall.GetComponents<AudioSource>()[1].Play();
+                if (ballSpeedDropdown.value == 0) //Slow
+                {
+                    _currBallSpeed = 40; //Was 75 or 40
+                }
+                else if (ballSpeedDropdown.value == 1) //Medium
+                {
+                    _currBallSpeed = 125;
+                }
+                else if (ballSpeedDropdown.value == 2) //Fast
+                {
+                    _currBallSpeed = 250;
+                }
+                else if (ballSpeedDropdown.value == 3) //Random
+                {
+                    _currBallSpeed = UnityEngine.Random.Range(75, 250);
+                }
 
-            rb.AddForce(ballPositions[_currBallType].Destination * _currBallSpeed, ForceMode.Acceleration);
+                //Play Click sound
+                _currentBall.GetComponents<AudioSource>()[1].Play();
+
+                rb.AddForce(ballPositions[_currBallType].Destination * _currBallSpeed, ForceMode.Acceleration);
+            }
         }
     }
 
