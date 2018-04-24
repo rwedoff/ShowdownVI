@@ -96,10 +96,10 @@ public class PaddleScript : MonoBehaviour
         rb.MovePosition(Vector3.Lerp(rb.position, newPosition, Time.fixedDeltaTime * 20));
 
         //DEBUG ONLY
-        float movehorizontal = Input.GetAxis("Horizontal");
-        float movevertical = Input.GetAxis("Vertical");
-        Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
-        rb.MovePosition(transform.position + movement * Time.deltaTime * 300);
+            //float movehorizontal = Input.GetAxis("Horizontal");
+            //float movevertical = Input.GetAxis("Vertical");
+            //Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
+            //rb.MovePosition(transform.position + movement * Time.deltaTime * 300);
         //END DEBUG
 
         RotateBat(BodySourceView.wristPosition, BodySourceView.handPosition);

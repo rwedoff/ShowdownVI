@@ -8880,11 +8880,13 @@ MonoBehaviour:
   m_Value: 0
   m_Options:
     m_Options:
-    - m_Text: Easy Speed
+    - m_Text: Dynamic Speed
       m_Image: {fileID: 0}
-    - m_Text: Medium Speed
+    - m_Text: Slow
       m_Image: {fileID: 0}
-    - m_Text: Fast Speed
+    - m_Text: Medium
+      m_Image: {fileID: 0}
+    - m_Text: Hard
       m_Image: {fileID: 0}
     - m_Text: Random
       m_Image: {fileID: 0}
@@ -11414,7 +11416,7 @@ MonoBehaviour:
   clockText: {fileID: 1230601100}
   globalSpeechGameObject: {fileID: 2047228899}
   menuGameObject: {fileID: 489142306}
-  IsTactileDouse: 0
+  IsTactileDouse: 1
   IsAnnounceBall: 1
   IsCorrectionHints: 1
 --- !u!4 &2125212025
@@ -11894,7 +11896,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Easy Speed
+  m_Text: Dynamic Speed
 --- !u!222 &2139587230
 CanvasRenderer:
   m_ObjectHideFlags: 0

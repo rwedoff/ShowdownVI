@@ -112,7 +112,7 @@ AudioSource:
   Priority: 64
   DopplerLevel: 0.25
   MinDistance: 1
-  MaxDistance: 628
+  MaxDistance: 314
   Pan2D: 0
   rolloffMode: 2
   BypassEffects: 0
@@ -127,66 +127,6 @@ AudioSource:
       inSlope: 0
       outSlope: 0
       tangentMode: 136
-    - serializedVersion: 2
-      time: 0.08888525
-      value: 0.47384644
-      inSlope: -4.3253975
-      outSlope: -4.3253975
-      tangentMode: 136
-    - serializedVersion: 2
-      time: 0.20221081
-      value: 0.12907878
-      inSlope: -0.8632801
-      outSlope: -0.8632801
-      tangentMode: 136
-    - serializedVersion: 2
-      time: 0.24996077
-      value: 0.094315454
-      inSlope: -0.52971834
-      outSlope: -0.52971834
-      tangentMode: 136
-    - serializedVersion: 2
-      time: 0.29808903
-      value: 0.07829033
-      inSlope: -0.26750237
-      outSlope: -0.26750237
-      tangentMode: 136
-    - serializedVersion: 2
-      time: 0.40328088
-      value: 0.05330196
-      inSlope: -0.20000054
-      outSlope: -0.20000054
-      tangentMode: 136
-    - serializedVersion: 2
-      time: 0.49681008
-      value: 0.03854601
-      inSlope: -0.10872443
-      outSlope: -0.10872443
-      tangentMode: 136
-    - serializedVersion: 2
-      time: 0.5988516
-      value: 0.032038644
-      inSlope: -0.055947673
-      outSlope: -0.055947673
-      tangentMode: 136
-    - serializedVersion: 2
-      time: 0.6984694
-      value: 0.027263641
-      inSlope: -0.040116172
-      outSlope: -0.040116172
-      tangentMode: 136
-    - serializedVersion: 2
-      time: 0.7996266
-      value: 0.02398432
-      inSlope: -0.028198663
-      outSlope: -0.028198663
-      tangentMode: 136
-    - serializedVersion: 2
-      time: 0.89794695
-      value: 0.021638641
-      inSlope: -0.03893878
-      outSlope: -0.03893878
-      tangentMode: 0
     - serializedVersion: 2
       time: 1
       value: 0.015073519
