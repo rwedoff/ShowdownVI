@@ -110,7 +110,6 @@
     <Compile Include="Assets\scripts\NumberSpeech.cs" />
     <Compile Include="Assets\scripts\PaddleScript.cs" />
     <Compile Include="Assets\scripts\SinglePManager.cs" />
-    <Compile Include="Assets\scripts\TutorialSounds.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Plugins\x86_64\NuiDatabase\Expression\NuiExpressionModelManifest.txt" />

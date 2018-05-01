@@ -23,8 +23,8 @@ public class ExpManager : MonoBehaviour
     public GameObject globalSpeechGameObject;
     public GameObject menuGameObject;
     public bool IsTactileDouse;
-    public bool IsAnnounceBall;
     public bool IsCorrectionHints;
+    public bool IsMidPointAnnounce;
 
     public static float TableEdge { get; private set; }
     public static float CenterX { get; private set; }
@@ -32,6 +32,9 @@ public class ExpManager : MonoBehaviour
     public static List<ExperimentLogFile> LogFileList = new List<ExperimentLogFile>();
     public static string globalClockString;
     public static string ParticipantId { private get; set; }
+    public static Snapshot CollisionSnapshot { get; set; }
+    public class Snapshot { public Vector3 ballPos { get; set; } public Vector3 batPos { get; set; } }
+
     public enum ExpState { menus, ballInPlay, noBall }
     public static ExpState expState;
 
@@ -56,11 +59,12 @@ public class ExpManager : MonoBehaviour
     private enum HitRes { miss = 0, tipped=1, hitNotPastHalf = 2, pastHalfHit = 3, goal = 4  }
     private HitRes thisHitres;
     private NumberSpeech numberSpeech;
-    private const int rightStartXPos = 42;
-    private const int leftStartXPos = -42;
+    private const int rightStartXPos = 37;
+    private const int leftStartXPos = -37;
     private const int  centerStartXPos = 0;
-    private Vector3 snapShotBallPos;
-    private Vector3 snapShotBatPos;
+    private bool IsAnnounceBall;
+    private Snapshot endSnapshot;
+    private Snapshot middleSnapshot;
 
     /// <summary>
     /// AudioSources
@@ -80,15 +84,22 @@ public class ExpManager : MonoBehaviour
     private AudioSource endFarRightAudio;
     private AudioSource andIsAudio;
     private AudioSource tippedAudio;
+    private AudioSource backwardAudio;
     private AudioSource tooForward;
     private AudioSource tooBack;
+    private AudioSource moveLeftAudio;
     private AudioSource reachRight;
     private AudioSource tooRight;
     private AudioSource tooLeft;
     private AudioSource reachLeft;
     private AudioSource middleAudio;
+    private AudioSource levelUpAudio;
     private int playerLevel;
-    private int oldPlayerLevel;
+    private int[] prevHits;
+    private enum HintLength { full, shortLen, nonspatial }
+    private HintLength oldHintLen;
+    private AudioSource moveRightAudio;
+    private bool firstPass;
 
     private void Start()
     {
@@ -106,6 +117,7 @@ public class ExpManager : MonoBehaviour
         startExpButton.onClick.AddListener(StartExp);
         numberSpeech = globalSpeechGameObject.GetComponent<NumberSpeech>();
         _audioSources = GetComponents<AudioSource>();
+        levelUpAudio = _audioSources[14];
         BallScript.GameInit = false;
         playerReady = false;
         batSound = batObj.GetComponents<AudioSource>()[0];
@@ -125,8 +137,7 @@ public class ExpManager : MonoBehaviour
         canPressStartButton = true;
         expState = ExpState.menus;
         playerLevel = 0;
-        oldPlayerLevel = 0;
-
+        prevHits = new int[6] { 0, 0, 0, 0, 0, 0 };
         SetupChildAudio();
     }
 
@@ -144,16 +155,18 @@ public class ExpManager : MonoBehaviour
         endCenterAudio = centerAudioSources[0];
         middleAudio = centerAudioSources[1];
         tippedAudio = centerAudioSources[2];
+        backwardAudio = centerAudioSources[3];
         endCenterRightAudio = transform.Find("End4").GetComponent<AudioSource>();
         var farRightAudioSources = transform.Find("End5").GetComponents<AudioSource>();
         endFarRightAudio = farRightAudioSources[0];
         reachRight = farRightAudioSources[1];
         tooRight = farRightAudioSources[2];
-        var middleAudioSources = transform.Find("Middle Line").GetComponents<AudioSource>();
+        var middleAudioSources = transform.Find("Guide Line").GetComponents<AudioSource>();
         andIsAudio = middleAudioSources[0];
         tooForward = middleAudioSources[1];
         tooBack = middleAudioSources[2];
-
+        moveLeftAudio = middleAudioSources[9];
+        moveRightAudio = middleAudioSources[10];
     }
 
     private void Update()
@@ -187,9 +200,23 @@ public class ExpManager : MonoBehaviour
 
         CheckHitResult();
 
-        if (IsTactileDouse)
+        SetGameHints();
+
+    }
+
+    private void SetGameHints()
+    {
+        if (playerLevel <= 3)
         {
-            TactileDouse();
+            if (IsTactileDouse)
+            {
+                TactileDouse();
+            }
+            if (IsMidPointAnnounce)
+            {
+                PlayMidPointAudio();
+            }
+            IsAnnounceBall = true;
         }
 
         if (IsCorrectionHints)
@@ -204,8 +231,6 @@ public class ExpManager : MonoBehaviour
         if ((BallScript.BallHitOnce || NaiveBallScript.BallHitOnce) && maxDistance > 10)
         {
             timerStarted = false;
-            BallScript.BallHitOnce = false;
-            NaiveBallScript.BallHitOnce = false;
             StartCoroutine(HitPastHalfStartNextBall());
             return;
         }
@@ -223,6 +248,7 @@ public class ExpManager : MonoBehaviour
                 StartNextBall(HitRes.miss);
             }
         }
+
         if (GoalScript.ExpBallWin)
         {
             GoalScript.ExpBallWin = false;
@@ -268,30 +294,61 @@ public class ExpManager : MonoBehaviour
         {
             if(_currentBall.transform.position.z < -75 && _currentBall.transform.position.z > - 85)
             {
-                snapShotBallPos = _currentBall.transform.position;
-                snapShotBatPos = batObj.transform.position;
+                endSnapshot = new Snapshot()
+                {
+                    ballPos = _currentBall.transform.position,
+                    batPos = batObj.transform.position
+                };
+            }
+        }
+    }
+
+    private void PlayMidPointAudio()
+    {
+        if (_currentBall != null)
+        {
+            if (firstPass && _currentBall.transform.position.z < 5 && _currentBall.transform.position.z > -5)
+            {
+                firstPass = false;
+                var snapShotBatPos = batObj.transform.position;
+                float absDist = Math.Abs(snapShotBatPos.x - GetActualXDestination());
+
+                if (absDist > 20)
+                {
+                    if(snapShotBatPos.x < GetActualXDestination())
+                    {
+                        moveRightAudio.Play();
+                    }
+                    else
+                    {
+                        moveLeftAudio.Play();
+                    }
+                }
             }
         }
     }
 
     private void TactileDouse()
     {
-        Vector3 batPos = batObj.transform.position;
-        if (_currentBall != null)
+        if (!BallScript.BallHitOnce)
         {
-            float absDist = Math.Abs(batPos.x - GetActualXDestination());
-            //float distAwayFromDest = 100 - absDist;
-            if (absDist < 30 && absDist > 20)
+            Vector3 batPos = batObj.transform.position;
+            if (_currentBall != null)
             {
-                JoyconController.RumbleJoycon(160, 320, 0.1f, 200);
-            }
-            else if(absDist <= 20 && absDist > 10)
-            {
-                JoyconController.RumbleJoycon(160, 320, 0.3f, 200);
-            }   
-            else if(absDist < 10)
-            {
-                JoyconController.RumbleJoycon(160, 320, 0.9f, 200);
+                float absDist = Math.Abs(batPos.x - GetActualXDestination());
+                //float distAwayFromDest = 100 - absDist;
+                if (absDist < 30 && absDist > 20)
+                {
+                    JoyconController.RumbleJoycon(160, 320, 0.1f, 200);
+                }
+                else if (absDist <= 20 && absDist > 10)
+                {
+                    JoyconController.RumbleJoycon(160, 320, 0.3f, 200);
+                }
+                else if (absDist < 10)
+                {
+                    JoyconController.RumbleJoycon(160, 320, 0.5f, 200);
+                }
             }
         }
     }
@@ -348,6 +405,8 @@ public class ExpManager : MonoBehaviour
     private IEnumerator HitPastHalfStartNextBall()
     {
         yield return new WaitForSeconds(1.5f); //Time allowed once ball goes past halfway point
+        BallScript.BallHitOnce = false;
+        NaiveBallScript.BallHitOnce = false;
         StartNextBall(HitRes.pastHalfHit);
     }
 
@@ -391,12 +450,24 @@ public class ExpManager : MonoBehaviour
 
             if (IsAnnounceBall)
             {
-                yield return AnnouceBallPosition();
+                if (playerLevel == 0)
+                {
+                    yield return AnnounceBallPos(HintLength.full);
+                }
+                if (playerLevel == 1)
+                {
+                    yield return AnnounceBallPos(HintLength.shortLen);
+                }
+                if (playerLevel == 2)
+                {
+                    yield return AnnounceBallPos(HintLength.nonspatial);
+                }
             }
 
 
             if (!canPressStartButton && playerReady) //Check again to not send ball in transition.
             {
+                firstPass = true;
                 _currentBall = Instantiate(ourBall, _currBallPath.Origin, new Quaternion());
                 expState = ExpState.ballInPlay;
                 Rigidbody rb = _currentBall.GetComponent<Rigidbody>();
@@ -410,8 +481,20 @@ public class ExpManager : MonoBehaviour
         }
     }
 
-    private IEnumerator AnnouceBallPosition()
+    private IEnumerator AnnounceBallPos(HintLength hintLength)
     {
+        if(hintLength == HintLength.full)
+        {
+            SetupFullHintAudio();
+        }
+        else if(hintLength == HintLength.shortLen)
+        {
+            SetupShortLenHintAudio();
+        }
+        else if(hintLength == HintLength.nonspatial)
+        {
+            SetupNonSpatialHintAudio();
+        }
         //Play where the ball is starting
         if (_currBallPath.BallOriginType == BallOriginType.left) //Left Start
         {
@@ -469,20 +552,86 @@ public class ExpManager : MonoBehaviour
         else { yield break; }
     }
 
+    private void SetupFullHintAudio()
+    {
+        if(oldHintLen != HintLength.full)
+        {
+            startLeftAudio = transform.Find("Start1").GetComponent<AudioSource>();
+            startCenterAudio = transform.Find("Start2").GetComponent<AudioSource>();
+            startRightAudio = transform.Find("Start3").GetComponent<AudioSource>();
+            var farLeftAudioSources = transform.Find("End1").GetComponents<AudioSource>();
+            endFarLeftAudio = farLeftAudioSources[0];
+            endCenterLeftAudio = transform.Find("End2").GetComponent<AudioSource>();
+            var centerAudioSources = transform.Find("End3").GetComponents<AudioSource>();
+            endCenterAudio = centerAudioSources[0];
+            endCenterRightAudio = transform.Find("End4").GetComponent<AudioSource>();
+            var farRightAudioSources = transform.Find("End5").GetComponents<AudioSource>();
+            endFarRightAudio = farRightAudioSources[0];
+            var middleAudioSources = transform.Find("Guide Line").GetComponents<AudioSource>();
+            andIsAudio = middleAudioSources[0];
+        }
+        oldHintLen = HintLength.full;
+    }
+
+    private void SetupShortLenHintAudio()
+    {
+        if (oldHintLen != HintLength.shortLen)
+        {
+            startLeftAudio = transform.Find("Start1").GetComponents<AudioSource>()[1];
+            startCenterAudio = transform.Find("Start2").GetComponents<AudioSource>()[1];
+            startRightAudio = transform.Find("Start3").GetComponents<AudioSource>()[1];
+            var farLeftAudioSources = transform.Find("End1").GetComponents<AudioSource>();
+            endFarLeftAudio = farLeftAudioSources[3];
+            endCenterLeftAudio = transform.Find("End2").GetComponent<AudioSource>();
+            var centerAudioSources = transform.Find("End3").GetComponents<AudioSource>();
+            endCenterAudio = centerAudioSources[0];
+            endCenterRightAudio = transform.Find("End4").GetComponent<AudioSource>();
+            var farRightAudioSources = transform.Find("End5").GetComponents<AudioSource>();
+            endFarRightAudio = farRightAudioSources[3];
+            var middleAudioSources = transform.Find("Guide Line").GetComponents<AudioSource>();
+            andIsAudio = middleAudioSources[3];
+        }
+        oldHintLen = HintLength.shortLen;
+    }
+
+    private void SetupNonSpatialHintAudio()
+    {
+        if (oldHintLen != HintLength.nonspatial)
+        {
+            var middleAudioSources = transform.Find("Guide Line").GetComponents<AudioSource>();
+            startLeftAudio = middleAudioSources[4];
+            startCenterAudio = middleAudioSources[6];
+            startRightAudio = middleAudioSources[8];
+            endFarLeftAudio = middleAudioSources[4];
+            endCenterLeftAudio = middleAudioSources[5];
+            endCenterAudio = middleAudioSources[6];
+            endCenterRightAudio = middleAudioSources[7];
+            endFarRightAudio = middleAudioSources[8];
+            andIsAudio = middleAudioSources[3];
+        }
+        oldHintLen = HintLength.nonspatial;
+    }
+
     private int DetermineCurrBallSpeed()
     {
         if (ballSpeedDropdown.value == 0) //Dynamic
         {
-            if(playerLevel == 0)
+            if(playerLevel <= 4)
             {
-                _currBallSpeed = 40;
+                return 40;
             }
-            else if (playerLevel > oldPlayerLevel + 3)
+            else if (playerLevel == 5)
             {
-                oldPlayerLevel = playerLevel;
-                _currBallSpeed += 8;
+                return 50;
             }
-            return _currBallSpeed; 
+            else if(playerLevel == 6)
+            {
+                return 60;
+            }
+            else if(playerLevel >= 7)
+            {
+                return 70;
+            }
         }
         else if (ballSpeedDropdown.value == 1) //Slow
         {
@@ -667,11 +816,40 @@ public class ExpManager : MonoBehaviour
     /// <returns></returns>
     private IEnumerator NextBallHit()
     {
-        playerLevel++;
+        prevHits[_currBallNumber % 6] = 1;
+        if (CheckLevelUp())
+        {
+            playerLevel ++;
+            levelUpAudio.Play();
+            yield return new WaitForSeconds(levelUpAudio.clip.length);
+        }
         _audioSources[0].Play();
         _audioSources[UnityEngine.Random.Range(1, 8)].Play();
         yield return new WaitForSeconds(_audioSources[0].clip.length);
         yield return NextBallComing();
+    }
+
+    /// <summary>
+    /// Checks if a player can level by checking if the last 6 hits were hit or not.
+    /// </summary>
+    /// <returns></returns>
+    private bool CheckLevelUp()
+    {
+        int hits = 0;
+        foreach(int h in prevHits)
+        {
+            if(h == 1)
+            {
+                hits++;
+            }
+        }
+        if(hits > 3) // 4 out of 6 hits, level up!
+        {
+            prevHits = new int[6] { 0, 0, 0, 0, 0, 0 };
+            Debug.Log("Level Up: " + (playerLevel + 1));
+            return true;
+        }
+        return false;
     }
     
     /// <summary>
@@ -680,6 +858,7 @@ public class ExpManager : MonoBehaviour
     /// <returns></returns>
     private IEnumerator NextBallMissed(HitRes hitRes)
     {
+        prevHits[_currBallNumber % 6] = 0;
         //Randomly, 1/3 of the time, play a random lose voice sound effect
         if (UnityEngine.Random.Range(0, 2) == 0)
         {
@@ -698,12 +877,34 @@ public class ExpManager : MonoBehaviour
 
     private IEnumerator ReadHitCorrection(HitRes hitRes)
     {
+        var snapShotBatPos = endSnapshot.batPos;
+        var snapShotBallPos = endSnapshot.ballPos;
         float absDist = Math.Abs(snapShotBatPos.x - snapShotBallPos.x);
         float distAway = 100 - absDist;
         if (hitRes == HitRes.tipped)
         {
-            tippedAudio.Play();
-            yield return new WaitForSeconds(tippedAudio.clip.length);
+            if (CollisionSnapshot.ballPos.x < CollisionSnapshot.batPos.x - 5)
+            {
+                tippedAudio.Play();
+                yield return new WaitForSeconds(tippedAudio.clip.length);
+                ExperimentLog.Log("Tipped to the left");
+                reachLeft.Play();
+                yield return new WaitForSeconds(reachLeft.clip.length);
+            }
+            else if(CollisionSnapshot.ballPos.x > CollisionSnapshot.batPos.x + 5)
+            {
+                tippedAudio.Play();
+                yield return new WaitForSeconds(tippedAudio.clip.length);
+                reachRight.Play();
+                yield return new WaitForSeconds(reachRight.clip.length);
+                ExperimentLog.Log("Tipped to the right");
+            }
+            else if (CollisionSnapshot.ballPos.z < CollisionSnapshot.batPos.z)
+            {
+                ExperimentLog.Log("You hit the ball backward");
+                backwardAudio.Play();
+                yield return new WaitForSeconds(backwardAudio.clip.length);
+            }
         }
         else if (distAway < 10)
         {
@@ -723,9 +924,11 @@ public class ExpManager : MonoBehaviour
         else if (snapShotBallPos.x > 0 && snapShotBallPos.x > snapShotBatPos.x)
         {
             //Reach further to the right
-            float distOff = Math.Abs(snapShotBatPos.x) + Math.Abs(snapShotBallPos.x);
+            float distOff = snapShotBallPos.x - snapShotBatPos.x;
             reachRight.Play();
             yield return new WaitForSeconds(reachRight.clip.length);
+            StartCoroutine(numberSpeech.PlayFancyNumberAudio((int)distOff));
+            yield return new WaitForSeconds(2.5f);
         }
         else if (snapShotBallPos.x > 0 && snapShotBallPos.x < snapShotBatPos.x)
         {
@@ -733,20 +936,26 @@ public class ExpManager : MonoBehaviour
             float distOff = snapShotBatPos.x - snapShotBallPos.x;
             tooRight.Play();
             yield return new WaitForSeconds(tooRight.clip.length);
+            StartCoroutine(numberSpeech.PlayFancyNumberAudio((int)distOff));
+            yield return new WaitForSeconds(2.5f);
         }
         else if (snapShotBallPos.x < 0 && snapShotBallPos.x > snapShotBatPos.x)
         {
             //Too far to the left
-            float distOff = Math.Abs(snapShotBatPos.x) - Math.Abs(snapShotBallPos.x);
+            float distOff = Math.Abs(snapShotBatPos.x - snapShotBallPos.x);
             tooLeft.Play();
             yield return new WaitForSeconds(tooLeft.clip.length);
+            StartCoroutine(numberSpeech.PlayFancyNumberAudio((int)distOff));
+            yield return new WaitForSeconds(2.5f);
         }
         else if (snapShotBallPos.x < 0 && snapShotBallPos.x < snapShotBatPos.x)
         {
             //Reach futher to the left
-            float distOff = Math.Abs(snapShotBallPos.x) - Math.Abs(snapShotBatPos.x);
+            float distOff = Math.Abs(snapShotBallPos.x - snapShotBatPos.x);
             reachLeft.Play();
             yield return new WaitForSeconds(reachLeft.clip.length);
+            StartCoroutine(numberSpeech.PlayFancyNumberAudio((int)distOff));
+            yield return new WaitForSeconds(2.5f);
         }
         else if (snapShotBallPos.x == 0)
         {
@@ -763,7 +972,7 @@ public class ExpManager : MonoBehaviour
     /// <returns></returns>
     private IEnumerator NextBallComing()
     {
-        if ((UnityEngine.Random.Range(0, 3) == 0 && _currBallNumber != -1)
+        if ((UnityEngine.Random.Range(0, 3) == 0 && _currBallNumber != -1 && gamePoints != 1)
                 || _currBallNumber == 29) //Randomly 1/3 of the time say how many points
         {
             ExperimentLog.Log("Read the Score");
@@ -934,7 +1143,6 @@ public class ExpManager : MonoBehaviour
         _currBallNumber = -1;
         gamePoints = 0;
         playerLevel = 0;
-        oldPlayerLevel = 0;
         GameUtils.ballSpeedPointsEnabled = false;
         BallScript.GameInit = false;
         playerReady = false;
@@ -942,6 +1150,7 @@ public class ExpManager : MonoBehaviour
         batSound.mute = true;
         StartCoroutine(GameUtils.PlayIntroMusic());
         newBallOk = true;
+        prevHits = new int[6] { 0, 0, 0, 0, 0, 0 };
         expResults.Clear();
     }
 

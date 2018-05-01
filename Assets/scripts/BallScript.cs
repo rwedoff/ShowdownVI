@@ -271,9 +271,15 @@ public class BallScript : MonoBehaviour
             float impulse = collision.impulse.sqrMagnitude;
             if(collision.gameObject.tag == "Player")
             {
-                //PhoneServer.SendMessageToPhone("ball;");
                 float rumbleAmp = GameUtils.Scale(0, 243382, 0.3f, 0.9f, impulse);
                 JoyconController.RumbleJoycon(160, 320, rumbleAmp, 200);
+                if(GameUtils.playState == GameUtils.GamePlayState.ExpMode)
+                {
+                    ExpManager.CollisionSnapshot = new ExpManager.Snapshot() {
+                        batPos = collision.gameObject.transform.position,
+                        ballPos = transform.position
+                    };
+                }
             }
             paddleSound.volume = GameUtils.Scale(0, 243382, 0.07f, 0.3f, impulse);
             paddleSound.Play();

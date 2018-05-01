@@ -93,13 +93,13 @@ public class PaddleScript : MonoBehaviour
         Vector3 newPosition = new Vector3(-xPos, yPos, (zPos - unityTableEdge - estAvgError));
         //Smooting factor of fixedDeltaTime*20 is to keep the paddle from moving so quickly that is
         //phases through the ball on collision.
-        rb.MovePosition(Vector3.Lerp(rb.position, newPosition, Time.fixedDeltaTime * 20));
+        rb.MovePosition(Vector3.Lerp(rb.position, newPosition, Time.fixedDeltaTime * 15));
 
         //DEBUG ONLY
-            //float movehorizontal = Input.GetAxis("Horizontal");
-            //float movevertical = Input.GetAxis("Vertical");
-            //Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
-            //rb.MovePosition(transform.position + movement * Time.deltaTime * 300);
+        //float movehorizontal = Input.GetAxis("Horizontal");
+        //float movevertical = Input.GetAxis("Vertical");
+        //Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
+        //rb.MovePosition(transform.position + movement * Time.deltaTime * 300);
         //END DEBUG
 
         RotateBat(BodySourceView.wristPosition, BodySourceView.handPosition);

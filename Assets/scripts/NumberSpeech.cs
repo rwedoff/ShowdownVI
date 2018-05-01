@@ -53,7 +53,11 @@ public class NumberSpeech : MonoBehaviour
             { "80", a[40] },
             { "90", a[41] },
             { "youhave", a[42] },
-            { "points", a[43] }
+            { "points", a[43] },
+            { "by", a[44] },
+            { "foot", a[45] },
+            { "pen", a[46] },
+            { "inches", a[47] }
         };
     }
 
@@ -108,5 +112,49 @@ public class NumberSpeech : MonoBehaviour
             }
         }
         PlayAudio("points");
+    }
+
+    public IEnumerator PlayFancyNumberAudio(int num)
+    {
+        var aud = PlayAudio("by");
+        yield return new WaitForSeconds(aud.clip.length);
+
+        int inchNum = (int)(num / 2.54);
+        if (inchNum > 10 && inchNum < 15)
+        {
+            Debug.Log("Foot");
+            var aud1 = PlayAudio("foot");
+            yield return new WaitForSeconds(aud1.clip.length);
+            yield break;
+        }
+        else if (inchNum > 4 && inchNum < 8)
+        {
+            Debug.Log("Pen");
+            var aud1 = PlayAudio("pen");
+            yield return new WaitForSeconds(aud1.clip.length);
+            yield break;
+        }
+
+        string numStr = inchNum.ToString();
+        if (inchNum <= 19)
+        {
+            Debug.Log("HEHEHEHE: " + numStr);
+            var aud0 = PlayAudio(numStr);
+            yield return new WaitForSeconds(aud0.clip.length);
+        }
+        else
+        {
+            string firstDigit = numStr.Substring(0, 1) + "0";
+            string secondDigit = numStr.Substring(1, 1);
+            var aud1 = PlayAudio(firstDigit);
+            yield return new WaitForSeconds(aud1.clip.length);
+            if (!secondDigit.Equals("0"))
+            {
+                var aud2 = PlayAudio(secondDigit);
+                yield return new WaitForSeconds(aud2.clip.length);
+            }
+        }
+        var aud3 = PlayAudio("inches");
+        yield return new WaitForSeconds(aud3.clip.length);
     }
 }

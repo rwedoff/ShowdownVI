@@ -78,10 +78,13 @@ public class GoalScript : MonoBehaviour {
             }
             if (gameObject.tag == "NorthGoal")
             {
-                PlayWinSound();
-                ExpBallWin = true;
-                ExpManager.expState = ExpManager.ExpState.noBall;
-                Destroy(other.gameObject);
+                if (BallScript.BallHitOnce)
+                {
+                    PlayWinSound();
+                    ExpBallWin = true;
+                    ExpManager.expState = ExpManager.ExpState.noBall;
+                    Destroy(other.gameObject);
+                }
             }
         }
     }
