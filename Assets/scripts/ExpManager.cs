@@ -880,7 +880,6 @@ public class ExpManager : MonoBehaviour
         var snapShotBatPos = endSnapshot.batPos;
         var snapShotBallPos = endSnapshot.ballPos;
         float absDist = Math.Abs(snapShotBatPos.x - snapShotBallPos.x);
-        float distAway = 100 - absDist;
         if (hitRes == HitRes.tipped)
         {
             if (CollisionSnapshot.ballPos.x < CollisionSnapshot.batPos.x - 5)
@@ -906,7 +905,7 @@ public class ExpManager : MonoBehaviour
                 yield return new WaitForSeconds(backwardAudio.clip.length);
             }
         }
-        else if (distAway < 10)
+        else if (absDist < 10)
         {
             if (snapShotBatPos.z > snapShotBallPos.z)
             {

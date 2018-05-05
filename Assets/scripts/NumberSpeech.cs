@@ -57,7 +57,9 @@ public class NumberSpeech : MonoBehaviour
             { "by", a[44] },
             { "foot", a[45] },
             { "pen", a[46] },
-            { "inches", a[47] }
+            { "inches", a[47] },
+            { "pinch", a[48] },
+            { "arm", a[49] }
         };
     }
 
@@ -127,6 +129,12 @@ public class NumberSpeech : MonoBehaviour
             yield return new WaitForSeconds(aud1.clip.length);
             yield break;
         }
+        else if(inchNum >= 16)
+        {
+            var aud1 = PlayAudio("arm");
+            yield return new WaitForSeconds(aud1.clip.length);
+            yield break;
+        }
         else if (inchNum > 4 && inchNum < 8)
         {
             Debug.Log("Pen");
@@ -134,11 +142,16 @@ public class NumberSpeech : MonoBehaviour
             yield return new WaitForSeconds(aud1.clip.length);
             yield break;
         }
+        else if(inchNum < 2)
+        {
+            var aud1 = PlayAudio("pinch");
+            yield return new WaitForSeconds(aud1.clip.length);
+            yield break;
+        }
 
         string numStr = inchNum.ToString();
         if (inchNum <= 19)
         {
-            Debug.Log("HEHEHEHE: " + numStr);
             var aud0 = PlayAudio(numStr);
             yield return new WaitForSeconds(aud0.clip.length);
         }

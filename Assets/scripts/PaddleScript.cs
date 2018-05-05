@@ -5,6 +5,7 @@ using Windows.Kinect;
 public class PaddleScript : MonoBehaviour
 {
     public static bool ScreenPressDown { get; internal set; }
+    public bool keyboardControl;
 
     private Rigidbody rb;
     private UnityEngine.AudioSource wallCollideAudio;
@@ -95,12 +96,15 @@ public class PaddleScript : MonoBehaviour
         //phases through the ball on collision.
         rb.MovePosition(Vector3.Lerp(rb.position, newPosition, Time.fixedDeltaTime * 15));
 
-        //DEBUG ONLY
-        //float movehorizontal = Input.GetAxis("Horizontal");
-        //float movevertical = Input.GetAxis("Vertical");
-        //Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
-        //rb.MovePosition(transform.position + movement * Time.deltaTime * 300);
-        //END DEBUG
+        if (keyboardControl)
+        {
+            //DEBUG ONLY
+            float movehorizontal = Input.GetAxis("Horizontal");
+            float movevertical = Input.GetAxis("Vertical");
+            Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
+            rb.MovePosition(transform.position + movement * Time.deltaTime * 300);
+            //END DEBUG
+        }
 
         RotateBat(BodySourceView.wristPosition, BodySourceView.handPosition);
 

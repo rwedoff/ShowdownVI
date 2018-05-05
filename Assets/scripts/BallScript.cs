@@ -8,6 +8,7 @@ public class BallScript : MonoBehaviour
     public float inputSpeed;
     public AudioMixerSnapshot farSideSnap;
     public AudioMixerSnapshot closeSideSnap;
+    public bool keyboardControl;
 
     public static bool GameInit;
 
@@ -44,14 +45,16 @@ public class BallScript : MonoBehaviour
     //Game logic placed in here...bad idea.
     private void FixedUpdate()
     {
-        //DEBUG ONLY
-        //Manual Keyboard Control of Ball
-        //float movehorizontal = Input.GetAxis("Horizontal");
-        //float movevertical = Input.GetAxis("Vertical");
-        //Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
-        //rb.AddForce(movement * inputSpeed);
-        //END DEBUG
-
+        if (keyboardControl)
+        {
+            //DEBUG ONLY
+            //Manual Keyboard Control of Ball
+            float movehorizontal = Input.GetAxis("Horizontal");
+            float movevertical = Input.GetAxis("Vertical");
+            Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
+            rb.AddForce(movement * inputSpeed);
+            //END DEBUG
+        }
         //Check ball state
         if (GameInit)
         {
