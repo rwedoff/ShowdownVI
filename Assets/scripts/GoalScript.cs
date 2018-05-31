@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 public class GoalScript : MonoBehaviour {
-    public Text scoreText;
+    public GameObject scoreTextGO;
     public static int PlayerScore;
     public static int OpponentScore;
     public static bool gameOver;
@@ -24,9 +20,13 @@ public class GoalScript : MonoBehaviour {
     private static AudioSource playerWins;
     private static AudioSource opponentWins;
 
+    private TextMesh scoreText;
+    private const string INITSCORETEXT = "Player 0 - 0 Opponent";
+    private static GoalScript Instance;
+
     private void Start()
     {
-        PlayerScore = 0;
+        PlayerScore = 10;
         OpponentScore = 0;
         AudioSource[] audioSources = transform.parent.GetComponents<AudioSource>();
         winPointAudio = audioSources[0];
@@ -39,12 +39,19 @@ public class GoalScript : MonoBehaviour {
         playerWins = audioSources[7];
         opponentWins = audioSources[8];
         gameOver = false;
+        if (scoreTextGO != null)
+        {
+            scoreText = scoreTextGO.GetComponent<TextMesh>();
+        }
+        Instance = this;
     }
 
     private void Update()
     {
-        if(GameUtils.playState != GameUtils.GamePlayState.ExpMode)
-            scoreText.text = "Player " + PlayerScore + " - " + OpponentScore + " Opponent";
+        if (GameUtils.playState != GameUtils.GamePlayState.ExpMode)
+        {
+            scoreText.text = "Player: " + PlayerScore + "\nComputer: " + OpponentScore;
+        }
     }
 
     void OnTriggerEnter(Collider other)
@@ -143,7 +150,8 @@ public class GoalScript : MonoBehaviour {
             gameOver = true;
             playerWins.Play();
             yield return new WaitForSeconds(playerWins.clip.length);
-            SceneManager.LoadSceneAsync("Master", LoadSceneMode.Single);
+            Instance.ResetGame();
+            yield break;
         }
         else if ((OpponentScore >= 11 && PlayerScore < 10)||
             ((OpponentScore >= 10 && PlayerScore >= 10) && (OpponentScore > PlayerScore + 1)))
@@ -151,7 +159,8 @@ public class GoalScript : MonoBehaviour {
             gameOver = true;
             opponentWins.Play();
             yield return new WaitForSeconds(opponentWins.clip.length);
-            SceneManager.LoadSceneAsync("Master", LoadSceneMode.Single);
+            Instance.ResetGame();
+            yield break;
         }
         if (GameUtils.PlayerServe)
         {
@@ -179,6 +188,15 @@ public class GoalScript : MonoBehaviour {
         }
     }
 
+    private void ResetGame()
+    {
+        scoreText.text = INITSCORETEXT;
+        PlayerScore = 0;
+        OpponentScore = 0;
+        gameOver = false;
+        GameUtils.PlayerServe = true;
+        SinglePManager.ResetGameToMenu();
+    }
 
     internal static void PlayWinSound()
     {

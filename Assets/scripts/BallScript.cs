@@ -45,6 +45,7 @@ public class BallScript : MonoBehaviour
     //Game logic placed in here...bad idea.
     private void FixedUpdate()
     {
+        Debug.Log("HERE1111");
         if (keyboardControl)
         {
             //DEBUG ONLY
@@ -93,8 +94,7 @@ public class BallScript : MonoBehaviour
 
         if (GoalScript.gameOver)
         {
-            Destroy(this);
-            Destroy(GetComponent<Rigidbody>());
+            rb.position = new Vector3(0, transform.position.y, 0);
         }
 
     }

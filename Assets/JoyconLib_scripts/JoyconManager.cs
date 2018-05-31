@@ -11,6 +11,7 @@ public class JoyconManager: MonoBehaviour
     public bool EnableIMU = true;
     public bool EnableLocalize = true;
     public byte LEDs = 0xff;
+    public static bool SinglePlayerMode = false;
 
     public Joycon j;
     static JoyconManager instance;
@@ -26,7 +27,14 @@ public class JoyconManager: MonoBehaviour
         instance = this;
         j = new Joycon();
         DontDestroyOnLoad(instance);
-        SceneManager.LoadSceneAsync("Master", LoadSceneMode.Single);
+        if (SinglePlayerMode)
+        {
+            SceneManager.LoadSceneAsync("SinglePlayer", LoadSceneMode.Single);
+        }
+        else
+        {
+            SceneManager.LoadSceneAsync("Master", LoadSceneMode.Single);
+        }
     }
 
     void Start()

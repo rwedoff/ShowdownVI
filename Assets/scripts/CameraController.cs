@@ -19,20 +19,10 @@ public class CameraController : MonoBehaviour
     private void FixedUpdate()
     {
         CameraSpacePoint closestZPoint = BodySourceView.closestZPoint;
-        //float furtherestZPosition = BodySourceView.MaxZDistance;
         CameraSpacePoint headPos = BodySourceView.headPosition;
-        float centerXPoint, maxZPoint;
 
-        if (GameUtils.playState == GameUtils.GamePlayState.ExpMode)
-        {
-            centerXPoint = ExpManager.CenterX != 0 ? ExpManager.CenterX : closestZPoint.X;
-            maxZPoint = ExpManager.TableEdge != 0 ? ExpManager.TableEdge : BodySourceView.MaxZDistance;
-        }
-        else
-        {
-            centerXPoint = SinglePManager.CenterX != 0 ? SinglePManager.CenterX : BodySourceView.closestZPoint.X;
-            maxZPoint = SinglePManager.TableEdge != 0 ? SinglePManager.TableEdge : BodySourceView.MaxZDistance;
-        }
+        float centerXPoint = PaddleScript.CenterX != 0 ? PaddleScript.CenterX : closestZPoint.X;
+        float maxZPoint = PaddleScript.TableEdge != 0 ? PaddleScript.TableEdge : BodySourceView.MaxZDistance;
 
         CameraDeltaZ = (maxZPoint - closestZPoint.Z) * 100;
         float xDiff = (headPos.X - centerXPoint) * 100;

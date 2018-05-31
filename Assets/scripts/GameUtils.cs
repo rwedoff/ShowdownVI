@@ -9,7 +9,7 @@ public class GameUtils
 
     public enum GamePlayState
     {
-        InPlay, SettingBall, BallSet, ExpMode
+        InPlay, SettingBall, BallSet, ExpMode, Menu
     }
     public static GamePlayState playState;
     internal static bool ballSpeedPointsEnabled = true;

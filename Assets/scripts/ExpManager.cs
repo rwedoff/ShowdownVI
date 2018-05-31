@@ -26,9 +26,7 @@ public class ExpManager : MonoBehaviour
     public bool IsCorrectionHints;
     public bool IsMidPointAnnounce;
 
-    public static float TableEdge { get; private set; }
-    public static float CenterX { get; private set; }
-    //public static bool NaiveMode { private get; set; }
+    public static bool TactileAndAudio { private get; set; }
     public static List<ExperimentLogFile> LogFileList = new List<ExperimentLogFile>();
     public static string globalClockString;
     public static string ParticipantId { private get; set; }
@@ -100,6 +98,7 @@ public class ExpManager : MonoBehaviour
     private HintLength oldHintLen;
     private AudioSource moveRightAudio;
     private bool firstPass;
+    private bool past6Min;
 
     private void Start()
     {
@@ -124,8 +123,6 @@ public class ExpManager : MonoBehaviour
         batSound.mute = true;
         StartCoroutine(GameUtils.PlayIntroMusic());
         newBallOk = true;
-        TableEdge = 0;
-        CenterX = 0;
         canPressButton = true;
         clockTimer = new Timer(100);
         clockTimer.Elapsed += ClockTimer_Elapsed;
@@ -137,6 +134,7 @@ public class ExpManager : MonoBehaviour
         canPressStartButton = true;
         expState = ExpState.menus;
         playerLevel = 0;
+        past6Min = false;
         prevHits = new int[6] { 0, 0, 0, 0, 0, 0 };
         SetupChildAudio();
     }
@@ -173,6 +171,17 @@ public class ExpManager : MonoBehaviour
     {
         GameUtils.playState = GameUtils.GamePlayState.ExpMode;
 
+        if (TactileAndAudio)
+        {
+            IsTactileDouse = true;
+            IsMidPointAnnounce = true;
+        }
+        else
+        {
+            IsTactileDouse = false;
+            IsMidPointAnnounce = true;
+        }
+
         clockText.text = clockString;
 
         //Check ball state
@@ -186,8 +195,8 @@ public class ExpManager : MonoBehaviour
             if (JoyconController.ButtonPressed)
             {
                 playerReady = true;
-                TableEdge = BodySourceView.baseKinectPosition.Z;
-                CenterX = BodySourceView.baseKinectPosition.X;
+                PaddleScript.TableEdge = BodySourceView.baseKinectPosition.Z;
+                PaddleScript.CenterX = BodySourceView.baseKinectPosition.X;
             }
         }
         else
@@ -206,7 +215,7 @@ public class ExpManager : MonoBehaviour
 
     private void SetGameHints()
     {
-        if (playerLevel <= 3)
+        if (playerLevel < 3)
         {
             if (IsTactileDouse)
             {
@@ -228,7 +237,7 @@ public class ExpManager : MonoBehaviour
     private void CheckHitResult()
     {
         //Perfect hit, start new ball
-        if ((BallScript.BallHitOnce || NaiveBallScript.BallHitOnce) && maxDistance > 10)
+        if ((BallScript.BallHitOnce) && maxDistance > 10)
         {
             timerStarted = false;
             StartCoroutine(HitPastHalfStartNextBall());
@@ -239,7 +248,7 @@ public class ExpManager : MonoBehaviour
         if (GoalScript.ExpBallLose)
         {
             GoalScript.ExpBallLose = false;
-            if (BallScript.BallHitOnce || NaiveBallScript.BallHitOnce)
+            if (BallScript.BallHitOnce)
             {
                 StartNextBall(HitRes.tipped);
             }
@@ -247,18 +256,20 @@ public class ExpManager : MonoBehaviour
             {
                 StartNextBall(HitRes.miss);
             }
+            return;
         }
 
         if (GoalScript.ExpBallWin)
         {
             GoalScript.ExpBallWin = false;
             StartNextBall(HitRes.goal);
+            return;
         }
 
         //Wait for result of hit
         if (timerStarted)
         {
-            if (BallScript.BallHitOnce || NaiveBallScript.BallHitOnce)
+            if (BallScript.BallHitOnce)
             {
                 if (_currentBall != null)
                 {
@@ -381,6 +392,10 @@ public class ExpManager : MonoBehaviour
     {
         TimeSpan diff = e.SignalTime - startTime;
         clockString = diff.Minutes + ":" + diff.Seconds + "." + diff.Milliseconds;
+        if(diff.Minutes > 5)
+        {
+            past6Min = true;
+        }
     }
 
     /// <summary>
@@ -406,7 +421,6 @@ public class ExpManager : MonoBehaviour
     {
         yield return new WaitForSeconds(1.5f); //Time allowed once ball goes past halfway point
         BallScript.BallHitOnce = false;
-        NaiveBallScript.BallHitOnce = false;
         StartNextBall(HitRes.pastHalfHit);
     }
 
@@ -417,11 +431,11 @@ public class ExpManager : MonoBehaviour
     /// <returns>HitRes.miss or HitRes.hit</returns>
     private HitRes DetermineHitRes(GameObject ball)
     {
-        if((BallScript.BallHitOnce || NaiveBallScript.BallHitOnce) && maxDistance > -50)
+        if((BallScript.BallHitOnce) && maxDistance > -50)
         {
             return HitRes.hitNotPastHalf;
         }
-        else if ((BallScript.BallHitOnce || NaiveBallScript.BallHitOnce))
+        else if ((BallScript.BallHitOnce))
         {
             return HitRes.tipped;
         }
@@ -435,9 +449,13 @@ public class ExpManager : MonoBehaviour
     {
         if (!canPressStartButton && playerReady) //Double check to present sending two balls in transition
         {
+            if (past6Min)
+            {
+                FinishExp();
+            }
             _currBallType = _expList.Current;
             _currBallNumber++;
-            ballAndPosText.text = "Ball: " + _currBallNumber + "   Position: " + _currBallType;
+            ballAndPosText.text = "Ball: " + _currBallNumber + "   Pos: " + _currBallType + "   Level: " + playerLevel;
 
             bool isNewBallAvail = _expList.MoveNext();
             if (!isNewBallAvail)
@@ -669,7 +687,12 @@ public class ExpManager : MonoBehaviour
                 ExperimentLog.Log("Sending Ball");
                 if (_currBallNumber != -1)
                 {
-                    gamePoints += (int)hitres; //The points correlate to the hitres
+                    if (GoalScript.ExpBallWin)
+                    {
+                        GoalScript.ExpBallWin = false;
+                        hitres = HitRes.goal;
+                    }
+                    gamePoints += hitres == HitRes.miss ? 0 : (int)hitres - 1;//The points correlate to the hitres
                     CollectExpData(hitres);
                 }
                 Destroy(_currentBall);
@@ -685,8 +708,8 @@ public class ExpManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Player Not Ready: Need to press trigger");
-            ExperimentLog.Log("Player Not Ready", tag: "warn");
+            Debug.LogWarning("Exp Not Started");
+            ExperimentLog.Log("Exp Not Started", tag: "warn");
         }
 
     }
@@ -706,7 +729,8 @@ public class ExpManager : MonoBehaviour
             BallResult = (int) hit,
             EventTime = globalClockString,
             TimerTime = clockString,
-            GamePoints = gamePoints
+            GamePoints = gamePoints,
+            Level = playerLevel
         });
     }
 
@@ -781,8 +805,8 @@ public class ExpManager : MonoBehaviour
         var sb = new StringBuilder();
         //Append Exp result headers
         sb.AppendLine("Event_Time" + "," + "Timer_Time" + "," + "Participant_Id" + ","
-            + "Ball_Number" + "," + "Ball_Type" + ", " + "Ball_Speed" + "," + 
-            "Ball_Result [Miss->0|1 : MaybeHit->2 : HitPastHalf->3 : Goal->4]" + "," + "Game_Points");
+            + "Ball_Number" + "," + "Ball_Type" + "," + "Ball_Speed" + "," + 
+            "Ball_Result [Miss->0|1 : MaybeHit->2 : HitPastHalf->3 : Goal->4]" + "," + "Game_Points" + "," + "Level");
         //Append Exp results
         foreach (var data in expResults)
         {
@@ -796,12 +820,12 @@ public class ExpManager : MonoBehaviour
         {
             sb.AppendLine(data.ToString());
         }
-        //string naiveModeStr = NaiveMode ? "_navie_" : "_our_";
-        
+        string modeStr = TactileAndAudio ? "_tac_aud_" : "_aud_";
+
         var path = EditorUtility.SaveFilePanel(
               "Save Experiment as CSV",
               "",
-              nameField.text + "_exp.csv",
+              nameField.text + modeStr + "_exp.csv",
               "csv");
 
         if (path.Length != 0)
@@ -846,7 +870,7 @@ public class ExpManager : MonoBehaviour
         if(hits > 3) // 4 out of 6 hits, level up!
         {
             prevHits = new int[6] { 0, 0, 0, 0, 0, 0 };
-            Debug.Log("Level Up: " + (playerLevel + 1));
+            ExperimentLog.Log("Level Up: " + (playerLevel + 1), tag: "Exp");
             return true;
         }
         return false;
@@ -1151,6 +1175,7 @@ public class ExpManager : MonoBehaviour
         newBallOk = true;
         prevHits = new int[6] { 0, 0, 0, 0, 0, 0 };
         expResults.Clear();
+        past6Min = false;
     }
 
     private IEnumerator ReadGamePoints()
@@ -1174,11 +1199,12 @@ public class ExpData
     public string EventTime { get; internal set; }
     public string TimerTime { get; internal set; }
     public int GamePoints { get; internal set; }
+    public int Level { get; internal set; }
 
     public override string ToString()
     {
         return EventTime + "," + TimerTime + "," + ParticipantId + "," + BallNumber + "," + BallType + "," + 
-            BallSpeed + "," + BallResult + "," + GamePoints;
+            BallSpeed + "," + BallResult + "," + GamePoints + "," + Level;
     }
 }
 

@@ -103,7 +103,7 @@ AudioSource:
     type: 2}
   m_audioClip: {fileID: 8300000, guid: 96c0cbafd70a6e04bbddf2231e283fc9, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.25
   m_Pitch: 0.9
   Loop: 1
   Mute: 0
@@ -196,7 +196,7 @@ AudioSource:
   MaxDistance: 628
   Pan2D: 0
   rolloffMode: 2
-  BypassEffects: 0
+  BypassEffects: 1
   BypassListenerEffects: 0
   BypassReverbZones: 1
   rolloffCustomCurve:
@@ -500,6 +500,7 @@ MonoBehaviour:
   farSideSnap: {fileID: 245765757212363544, guid: 1dd706bb85d8aef4e83a6229dbd62c36,
     type: 2}
   closeSideSnap: {fileID: 24500003, guid: 1dd706bb85d8aef4e83a6229dbd62c36, type: 2}
+  keyboardControl: 0
 --- !u!135 &135435362158440468
 SphereCollider:
   m_ObjectHideFlags: 1

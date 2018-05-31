@@ -10,27 +10,10 @@ public class AIColliderScript : MonoBehaviour {
     {
         BatAI.ballHitSpeed = 50;
         BatAI.aiSpeed = 75;
-
-        if (levelDropDown != null)
-        {
-            levelDropDown.onValueChanged.AddListener(delegate
-            {
-                OnMyValueChange(levelDropDown);
-            });
-            levelDropDown.value = PlayerPrefs.GetInt("diff");
-            difficulty = levelDropDown.value;
-            SetPrefs(levelDropDown.value);
-        }
+        difficulty = PlayerPrefs.GetInt("diff");
     }
 
-    private void OnMyValueChange(Dropdown dropDown)
-    {
-        PlayerPrefs.SetInt("diff", dropDown.value);
-        difficulty = dropDown.value;
-        SetPrefs(dropDown.value);
-    }
-
-    private void SetPrefs(int pref)
+    public static void SaveDifficulty(int pref)
     {
         if (pref == 0) //Easy
         {
@@ -47,6 +30,7 @@ public class AIColliderScript : MonoBehaviour {
             BatAI.aiSpeed = 300;
             BatAI.ballHitSpeed = 150;
         }
+        PlayerPrefs.SetInt("diff", pref);
     }
 
     private void OnTriggerExit(Collider other)

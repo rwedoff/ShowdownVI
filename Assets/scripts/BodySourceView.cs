@@ -32,27 +32,30 @@ public class BodySourceView : MonoBehaviour
     public void Start()
     {
         //Code used for actual menu and should be used in futher deployment coding
-        //if(PlayerPrefs.GetInt("hand") == 0)
-        //{
-        //    leftyMode = false;
-        //}
-        //else
-        //{
-        //    leftyMode = true;
-        //}
+        if (PlayerPrefs.GetInt("hand") == 0)
+        {
+            leftyMode = false;
+        }
+        else
+        {
+            leftyMode = true;
+        }
 
         //leftyToggle.isOn = leftyMode;
     }
 
     void Update()
     {
-        if (leftyToggle.isOn) //Left handed
+        if (leftyToggle != null)
         {
-            leftyMode = true;
-        }
-        else
-        {
-            leftyMode = false;
+            if (leftyToggle.isOn) //Left handed
+            {
+                leftyMode = true;
+            }
+            else
+            {
+                leftyMode = false;
+            }
         }
 
 
@@ -132,12 +135,14 @@ public class BodySourceView : MonoBehaviour
     {
         if (isLefty)
         {
-            leftyToggle.isOn = true;
+            if(leftyToggle != null)
+                leftyToggle.isOn = true;
             leftyMode = true;
         }
         else
         {
-            leftyToggle.isOn = false;
+            if (leftyToggle != null)
+                leftyToggle.isOn = false;
             leftyMode = false;
         }
     }

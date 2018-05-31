@@ -5,6 +5,9 @@ using Windows.Kinect;
 public class PaddleScript : MonoBehaviour
 {
     public static bool ScreenPressDown { get; internal set; }
+    public static float TableEdge { get; set; }
+    public static float CenterX { get; set; }
+
     public bool keyboardControl;
 
     private Rigidbody rb;
@@ -32,6 +35,8 @@ public class PaddleScript : MonoBehaviour
         halfBatThick = transform.localScale.z / 2;
         batUpOnce = false;
         batDownOnce = false;
+        TableEdge = 0;
+        CenterX = 0;
     }
 
     // Update is called once per frame
@@ -39,29 +44,9 @@ public class PaddleScript : MonoBehaviour
     {
         CameraSpacePoint midSpinePosition = BodySourceView.baseKinectPosition;
         CameraSpacePoint handPosition = BodySourceView.handPosition;
-        float centerXPoint, maxZPoint;
 
-        if (GameUtils.playState ==  GameUtils.GamePlayState.ExpMode)
-        {
-            centerXPoint = ExpManager.CenterX != 0 ? ExpManager.CenterX : midSpinePosition.X;
-            maxZPoint = ExpManager.TableEdge != 0 ? ExpManager.TableEdge : midSpinePosition.Z;
-        }
-        else
-        {
-            centerXPoint = SinglePManager.CenterX != 0 ? SinglePManager.CenterX : midSpinePosition.X;
-            maxZPoint = SinglePManager.TableEdge != 0 ? SinglePManager.TableEdge : midSpinePosition.Z;
-        }
-
-        ////Add buffer to be able to reach the opposite side easier.
-        ////Not sure why leftyMode needs to be more of a buffer.
-        //if (BodySourceView.leftyMode)
-        //{
-        //    centerXPoint -= 0.15f;
-        //}
-        //else
-        //{
-        //    centerXPoint += 0.06f;
-        //}
+        float centerXPoint = CheckCalibratedX(midSpinePosition.X);
+        float maxZPoint = CheckCalibratedZ(midSpinePosition.Z);
 
         //Calculate the position of the paddle based on the distance from the mid spine join
         float xPos = (centerXPoint - handPosition.X) * 100,
@@ -69,46 +54,57 @@ public class PaddleScript : MonoBehaviour
               yPos = transform.position.y;
 
         ////If screen press, lift bat
-        //if (JoyconController.ButtonPressed || ScreenPressDown)
-        //{
-        //    yPos = 20;
-        //    batDownOnce = true;
-        //    if (batUpOnce)
-        //    {
-        //        PlayBatUpAudio();
-        //        batUpOnce = false;
-        //    }
-        //}
-        //else
-        //{
-        //    yPos = 5f;
-        //    batUpOnce = true;
-        //    if (batDownOnce)
-        //    {
-        //        PlayBatDownAudio();
-        //        batDownOnce = false;
-        //    }
-        //}
+        if (GameUtils.playState == GameUtils.GamePlayState.InPlay)
+        {
+            if (JoyconController.ButtonPressed || ScreenPressDown)
+            {
+                yPos = 20;
+                batDownOnce = true;
+                if (batUpOnce)
+                {
+                    PlayBatUpAudio();
+                    batUpOnce = false;
+                }
+            }
+            else
+            {
+                yPos = 5f;
+                batUpOnce = true;
+                if (batDownOnce)
+                {
+                    PlayBatDownAudio();
+                    batDownOnce = false;
+                }
+            }
+        }
 
         //Smoothing applied to slow down bat so it doesn't phase through ball
         Vector3 newPosition = new Vector3(-xPos, yPos, (zPos - unityTableEdge - estAvgError));
         //Smooting factor of fixedDeltaTime*20 is to keep the paddle from moving so quickly that is
         //phases through the ball on collision.
-        rb.MovePosition(Vector3.Lerp(rb.position, newPosition, Time.fixedDeltaTime * 15));
+        rb.MovePosition(Vector3.Lerp(rb.position, newPosition, Time.fixedDeltaTime * 13));
 
         if (keyboardControl)
         {
-            //DEBUG ONLY
             float movehorizontal = Input.GetAxis("Horizontal");
             float movevertical = Input.GetAxis("Vertical");
             Vector3 movement = new Vector3(movehorizontal, 0.0f, movevertical);
             rb.MovePosition(transform.position + movement * Time.deltaTime * 300);
-            //END DEBUG
         }
 
         RotateBat(BodySourceView.wristPosition, BodySourceView.handPosition);
 
         CheckBatInGame();
+    }
+
+    private float CheckCalibratedX(float xPos)
+    {
+        return CenterX != 0 ? CenterX : xPos;
+    }
+
+    private float CheckCalibratedZ(float zPos)
+    {
+        return TableEdge != 0 ? TableEdge : zPos;
     }
 
     private void PlayBatUpAudio()

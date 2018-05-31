@@ -4,6 +4,10 @@ using UnityEngine.SceneManagement;
 public class JoyconController : MonoBehaviour {
     private static Joycon j;
 
+    public GameObject singlePlayerMenuGO;
+    private SinglePManager spScript;
+    private bool spInit;
+
     /// <summary>
     /// ButtonPressed is the bool that sets calibration.
     /// Originally it was when the player presses any button for the first time,
@@ -24,7 +28,7 @@ public class JoyconController : MonoBehaviour {
         accel = new Vector3(0, 0, 0);
         // get the public Joycon object attached to the JoyconManager in scene
         j = JoyconManager.Instance.j;
-
+        spInit = false;
     }
 
     // Update is called once per frame
@@ -44,6 +48,29 @@ public class JoyconController : MonoBehaviour {
         // make sure the Joycon only gets checked if attached
         if (j != null && j.state > Joycon.state_.ATTACHED && GameUtils.playState != GameUtils.GamePlayState.ExpMode)
         {
+            if (GameUtils.playState == GameUtils.GamePlayState.Menu && InitSinglePlayerMenu())
+            {
+                if (j.GetButtonUp(Joycon.Button.DPAD_UP))
+                {
+                    spScript.ToggleHighlightedButton(true);
+                }
+                if (j.GetButtonUp(Joycon.Button.DPAD_DOWN))
+                {
+                    spScript.ToggleHighlightedButton(false);
+                }
+                if (j.GetButtonUp(Joycon.Button.SHOULDER_2))
+                {
+                    spScript.ClickSelectedButton();
+                }
+            }
+
+            //Back button while playing the game
+            if(j.GetButtonUp(Joycon.Button.HOME) || j.GetButtonUp(Joycon.Button.CAPTURE))
+            {
+                SceneManager.LoadSceneAsync("SinglePlayer", LoadSceneMode.Single);
+            }
+
+
             // GetButtonDown checks if a button has been released
             if (j.GetButtonUp(Joycon.Button.SHOULDER_2) ||
                 j.GetButtonUp(Joycon.Button.DPAD_UP) ||
@@ -73,10 +100,21 @@ public class JoyconController : MonoBehaviour {
         }
     }
 
+    private bool InitSinglePlayerMenu()
+    {
+        if(!spInit)
+        {
+            spScript = singlePlayerMenuGO.GetComponent<SinglePManager>();
+            spInit = true;
+            return false;
+        }
+        return true;
+    }
+
     public static void RumbleJoycon(float lowFreq, float higFreq, float amp, int time = 0)
     {
-        //if (CheckJoyconAvail() && BodySourceView.BodyFound)
-        if(CheckJoyconAvail())
+        if (CheckJoyconAvail() && BodySourceView.BodyFound)
+        //if(CheckJoyconAvail())
         {
             j.SetRumble(lowFreq, higFreq, amp, time);
         }
