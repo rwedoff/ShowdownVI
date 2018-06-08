@@ -45,7 +45,6 @@ public class BallScript : MonoBehaviour
     //Game logic placed in here...bad idea.
     private void FixedUpdate()
     {
-        Debug.Log("HERE1111");
         if (keyboardControl)
         {
             //DEBUG ONLY

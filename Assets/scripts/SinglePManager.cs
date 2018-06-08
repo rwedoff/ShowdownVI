@@ -25,6 +25,7 @@ public class SinglePManager : MonoBehaviour {
     private TextMesh diffText;
     private TextMesh handText;
 
+    #region Button Objects
     //Calibrate Menu
     private Button calibrateButton;
     private Button calibrateBackButton;
@@ -44,6 +45,7 @@ public class SinglePManager : MonoBehaviour {
     private Button changeHandButton;
     private Button settingsBack;
     private Button settingsCalibButton;
+    private Button howToPlayButton;
 
     //Change Diff Menu
     private Button easyButton;
@@ -51,12 +53,17 @@ public class SinglePManager : MonoBehaviour {
     private Button hardButton;
     private Button diffBack;
 
+    #endregion
+
     //Button list
     private List<Button> currButtonList;
     private int currButtonIndex;
+    private List<AudioSource> currAudioList;
 
     private AudioSource ballSound;
     private AudioSource batSound;
+    private Queue<AudioSource> playingAudioQueue = new Queue<AudioSource>();
+    private AudioSource playingAudio;
     private bool gameInit;
     private const string MENUTEXT = "Virtual Showdown";
     private const string DIFFTEXT = "Set Difficulty";
@@ -68,6 +75,41 @@ public class SinglePManager : MonoBehaviour {
     private List<Button> calibMenuButtonList;
     private List<Button> handButtonList;
     private List<Button> diffButtonList;
+    private List<AudioSource> settingsAudioList;
+    private List<AudioSource> mainMenuAudioList;
+    private List<AudioSource> calibMenuAudioList;
+    private List<AudioSource> handAudioList;
+    private List<AudioSource> diffAudioList;
+
+    #region AudioFile Fields
+    ////Calibrate Menu
+    private AudioSource calibrateAudio;
+    private AudioSource nowCalibAudio;
+
+    ////Hand Menu
+    private AudioSource rightHandAudio;
+    private AudioSource leftHandAudio;
+
+    ////Main Menu
+    private AudioSource mainMenuAudio;
+    private AudioSource singlePlayerAudio;
+    private AudioSource settingsAudio;
+    private AudioSource quitAudio;
+    private AudioSource backAudio;
+
+    ////Settings Menu
+    private AudioSource changeDiffAudio;
+    private AudioSource changeHandAudio;
+    private AudioSource reCalibAudio;
+    private AudioSource howToPlayShortAudio;
+    private AudioSource howToPlayLongAudio;
+
+    ////Change Diff Menu
+    private AudioSource changeDiffMenuAudio;
+    private AudioSource easyAudio;
+    private AudioSource mediumAudio;
+    private AudioSource hardAudio;
+    #endregion
 
     void Start () {
         GameUtils.playState = GameUtils.GamePlayState.Menu;
@@ -77,7 +119,7 @@ public class SinglePManager : MonoBehaviour {
             SceneManager.LoadSceneAsync("GlobalInit", LoadSceneMode.Single);
             return;
         }
-        SetupChildButtons();
+        SetupChildComponents();
         BallScript.GameInit = true;
         GameUtils.PlayerServe = true;
         gameInit = true;
@@ -88,6 +130,7 @@ public class SinglePManager : MonoBehaviour {
         diffText = diffTextGO.GetComponent<TextMesh>();
         handText = handTextGO.GetComponent<TextMesh>();
         StartCoroutine(GameUtils.PlayIntroMusic());
+
         SetHandMenu();
         mainMenuGO.SetActive(false);
         WholeMenuInstance = wholeMenuGO;
@@ -132,6 +175,7 @@ public class SinglePManager : MonoBehaviour {
         //}
 
         KeyBoardMenuControl();
+        CheckAndPlayAudio();
     }
 
     private void KeyBoardMenuControl()
@@ -150,42 +194,68 @@ public class SinglePManager : MonoBehaviour {
         }
     }
 
-    private void SetupChildButtons()
+    private void SetupChildComponents()
     {
+        //Main Menu
+        var buttons = mainMenuGO.GetComponentsInChildren<Button>(true);
+        singlePlayerButton = buttons[0];
+        settingsButton = buttons[1];
+        quitButton = buttons[2];
+        SetupMainMenuClick();
+        mainMenuButtonList = new List<Button>() { singlePlayerButton, settingsButton, quitButton };
+        var audios = mainMenuGO.GetComponents<AudioSource>();
+        mainMenuAudio = audios[0];
+        singlePlayerAudio = audios[1];
+        settingsAudio = audios[2];
+        quitAudio = audios[3];
+        var thisAuds = GetComponents<AudioSource>();
+        backAudio = thisAuds[1];
+        nowCalibAudio = thisAuds[0];
+
+        mainMenuAudioList = new List<AudioSource>() { singlePlayerAudio, settingsAudio, quitAudio };
+
+
         //Calibrate Menu
-        var buttons = calibrateMenuGO.GetComponentsInChildren<Button>(true);
+        buttons = calibrateMenuGO.GetComponentsInChildren<Button>(true);
         calibrateButton = buttons[0];
         calibrateBackButton = buttons[1];
-        calibrateMenuGO.SetActive(false);
         SetupCalibClick();
         calibMenuButtonList = new List<Button>() { calibrateButton, calibrateBackButton };
+        audios = calibrateMenuGO.GetComponents<AudioSource>();
+        calibrateAudio = audios[0];
+        calibrateMenuGO.SetActive(false);
+        calibMenuAudioList = new List<AudioSource>() { calibrateAudio, backAudio };
 
         //Hand Menu
         buttons = handMenuGO.GetComponentsInChildren<Button>(true);
         rightHandButton = buttons[0];
         leftHandButton = buttons[1];
         handBackButton = buttons[2];
-        handMenuGO.SetActive(false);
         SetupHandClick();
         handButtonList = new List<Button>() { rightHandButton, leftHandButton, handBackButton };
-
-        //Main Menu
-        buttons = mainMenuGO.GetComponentsInChildren<Button>(true);
-        singlePlayerButton = buttons[0];
-        settingsButton = buttons[1];
-        quitButton = buttons[2];
-        SetupMainMenuClick();
-        mainMenuButtonList = new List<Button>() { singlePlayerButton, settingsButton, quitButton };
+        audios = handMenuGO.GetComponents<AudioSource>();
+        rightHandAudio = audios[0];
+        leftHandAudio = audios[1];
+        handMenuGO.SetActive(false);
+        handAudioList = new List<AudioSource>() { rightHandAudio, leftHandAudio, backAudio };
 
         //Settings Menu
         buttons = settingsMenuGO.GetComponentsInChildren<Button>(true);
         changeHandButton = buttons[0];
         changeDifficultButton = buttons[1];
         settingsCalibButton = buttons[2];
-        settingsBack = buttons[3];
-        settingsMenuGO.SetActive(false);
+        howToPlayButton = buttons[3];
+        settingsBack = buttons[4];
         SetupSettingsMenuClick();
-        settingsButtonList = new List<Button>() { changeHandButton, changeDifficultButton, settingsCalibButton, settingsBack };
+        settingsButtonList = new List<Button>() { changeHandButton, changeDifficultButton, settingsCalibButton, howToPlayButton, settingsBack };
+        audios = settingsMenuGO.GetComponents<AudioSource>();
+        changeHandAudio = audios[0];
+        changeDiffAudio = audios[1];
+        reCalibAudio = audios[2];
+        howToPlayShortAudio = audios[3];
+        howToPlayLongAudio = audios[4];
+        settingsMenuGO.SetActive(false);
+        settingsAudioList = new List<AudioSource>() { changeHandAudio, changeDiffAudio, reCalibAudio, howToPlayShortAudio, backAudio };
 
         //Change Diff Menu
         buttons = diffucultMenuGO.GetComponentsInChildren<Button>(true);
@@ -193,10 +263,15 @@ public class SinglePManager : MonoBehaviour {
         mediumButton = buttons[1];
         hardButton = buttons[2];
         diffBack = buttons[3];
-        diffucultMenuGO.SetActive(false);
         SetupDiffClick();
         diffButtonList = new List<Button>() { easyButton, mediumButton, hardButton, diffBack };
-
+        audios = diffucultMenuGO.GetComponents<AudioSource>();
+        changeDiffAudio = audios[0];
+        easyAudio = audios[1];
+        mediumAudio = audios[2];
+        hardAudio = audios[3];
+        diffucultMenuGO.SetActive(false);
+        diffAudioList = new List<AudioSource>() { easyAudio, mediumAudio, hardAudio, backAudio };
     }
 
     private void SetupDiffClick()
@@ -240,6 +315,11 @@ public class SinglePManager : MonoBehaviour {
         {
             settingsMenuGO.SetActive(false);
             SetCalibMenu();
+        });
+        howToPlayButton.onClick.AddListener(() =>
+        {
+            //Play Audio File
+            howToPlayLongAudio.Play();
         });
         settingsBack.onClick.AddListener(() =>
         {
@@ -321,9 +401,8 @@ public class SinglePManager : MonoBehaviour {
         calibrateButton.onClick.AddListener(() =>
         {
             CalibrateGame();
-            calibrateMenuGO.SetActive(false);
             gameInit = false;
-            //PLAY AUDIO, Calibrated game
+            calibrateMenuGO.SetActive(false);
             SetMainMenu();
         });
         calibrateBackButton.onClick.AddListener(() =>
@@ -344,6 +423,8 @@ public class SinglePManager : MonoBehaviour {
     {
         PaddleScript.TableEdge = BodySourceView.baseKinectPosition.Z;
         PaddleScript.CenterX = BodySourceView.baseKinectPosition.X;
+        //nowCalibAudio.Play();
+        AddAudioToPlayingList(nowCalibAudio);
     }
 
     private void SetMainMenu()
@@ -352,6 +433,7 @@ public class SinglePManager : MonoBehaviour {
         titleText.text = MENUTEXT;
         currButtonList = mainMenuButtonList;
         currButtonIndex = 0;
+        currAudioList = mainMenuAudioList;
         ToggleTopButton();
     }
 
@@ -361,6 +443,7 @@ public class SinglePManager : MonoBehaviour {
         titleText.text = CALIBTEXT;
         currButtonIndex = 0;
         currButtonList = calibMenuButtonList;
+        currAudioList = calibMenuAudioList;
         ToggleTopButton();
         if (gameInit)
         {
@@ -378,6 +461,7 @@ public class SinglePManager : MonoBehaviour {
         titleText.text = DIFFTEXT;
         currButtonList = diffButtonList;
         currButtonIndex = 0;
+        currAudioList = diffAudioList;
         ToggleTopButton();
     }
 
@@ -387,6 +471,7 @@ public class SinglePManager : MonoBehaviour {
         titleText.text = SETTINGSTEXT;
         currButtonList = settingsButtonList;
         currButtonIndex = 0;
+        currAudioList = settingsAudioList;
         ToggleTopButton();
     }
 
@@ -396,6 +481,7 @@ public class SinglePManager : MonoBehaviour {
         titleText.text = HANDTEXT;
         currButtonList = handButtonList;
         currButtonIndex = 0;
+        currAudioList = handAudioList;
         ToggleTopButton();
         if (gameInit)
         {
@@ -440,6 +526,10 @@ public class SinglePManager : MonoBehaviour {
         ColorBlock cb = button.colors;
         cb.normalColor = Color.grey;
         button.colors = cb;
+        if(button != howToPlayButton)
+        {
+            AddAudioToPlayingList(currAudioList[currButtonIndex]);
+        }
     }
 
     public void ToggleHighlightedButton(bool upArrow)
@@ -470,6 +560,7 @@ public class SinglePManager : MonoBehaviour {
         cb = tempButton.colors;
         cb.normalColor = Color.cyan;
         tempButton.colors = cb;
+        AddAudioToPlayingList(currAudioList[currButtonIndex]);
     }
 
     private void ChangeHand(bool isLefty)
@@ -493,4 +584,22 @@ public class SinglePManager : MonoBehaviour {
         WholeMenuInstance.SetActive(true);
         GameUtils.playState = GameUtils.GamePlayState.Menu;
     }
+
+    private void AddAudioToPlayingList(AudioSource newAudio)
+    {
+        playingAudioQueue.Enqueue(newAudio);
+    }
+
+    private void CheckAndPlayAudio()
+    {
+        if(playingAudioQueue.Count != 0)
+        {
+            if (playingAudio == null || !playingAudio.isPlaying)
+            {
+                playingAudio = playingAudioQueue.Dequeue();
+                playingAudio.Play();
+            }
+        }
+    }
+
 }
