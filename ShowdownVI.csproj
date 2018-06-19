@@ -105,9 +105,9 @@
     <Compile Include="Assets\scripts\ExpManager.cs" />
     <Compile Include="Assets\scripts\GameUtils.cs" />
     <Compile Include="Assets\scripts\GoalScript.cs" />
+    <Compile Include="Assets\scripts\InputReader.cs" />
     <Compile Include="Assets\scripts\JoyconController.cs" />
     <Compile Include="Assets\scripts\MenuScript.cs" />
-    <Compile Include="Assets\scripts\MenuSpeech.cs" />
     <Compile Include="Assets\scripts\NumberSpeech.cs" />
     <Compile Include="Assets\scripts\PaddleScript.cs" />
     <Compile Include="Assets\scripts\SinglePManager.cs" />

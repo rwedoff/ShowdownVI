@@ -6,13 +6,13 @@ using System.Text;
 using System.Timers;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class ExpManager : MonoBehaviour
 {
     public GameObject ourBall;
-    //public GameObject naiveBall;
     public InputField nameField;
     public Text ballAndPosText;
     public Button saveExpButton;
@@ -114,6 +114,7 @@ public class ExpManager : MonoBehaviour
         ShuffleArray();
         saveExpButton.onClick.AddListener(FinishExp);
         startExpButton.onClick.AddListener(StartExp);
+        
         numberSpeech = globalSpeechGameObject.GetComponent<NumberSpeech>();
         _audioSources = GetComponents<AudioSource>();
         levelUpAudio = _audioSources[14];
@@ -139,6 +140,9 @@ public class ExpManager : MonoBehaviour
         SetupChildAudio();
     }
 
+    /// <summary>
+    /// Gets and setsup all child audio components
+    /// </summary>
     private void SetupChildAudio()
     {
         startLeftAudio = transform.Find("Start1").GetComponent<AudioSource>();
@@ -213,6 +217,10 @@ public class ExpManager : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// Sets the game hints based on the level of the game and also 
+    /// takes a snapshot of the game for the correction hints
+    /// </summary>
     private void SetGameHints()
     {
         if (playerLevel < 3)
@@ -234,6 +242,9 @@ public class ExpManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Checks the results of the ball if it was hit or not.
+    /// </summary>
     private void CheckHitResult()
     {
         //Perfect hit, start new ball
@@ -299,6 +310,9 @@ public class ExpManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Saves a snapshot of the ball position and the bat position
+    /// </summary>
     private void SaveSnapshotOfGame()
     {
         if(_currentBall != null)
@@ -314,6 +328,9 @@ public class ExpManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Plays audio depending if the bat is too far to the right or to the left
+    /// </summary>
     private void PlayMidPointAudio()
     {
         if (_currentBall != null)
@@ -339,6 +356,9 @@ public class ExpManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Adds vibration to the bat based on the X distance away from the ball destination
+    /// </summary>
     private void TactileDouse()
     {
         if (!BallScript.BallHitOnce)
@@ -364,6 +384,10 @@ public class ExpManager : MonoBehaviour
         }
     }
     
+    /// <summary>
+    /// Calculations of where the ball was
+    /// </summary>
+    /// <returns></returns>
     private float GetActualXDestination()
     {
         var bt = _currBallPath.BallOriginType;
@@ -383,11 +407,21 @@ public class ExpManager : MonoBehaviour
         return startXPos + (2 * _currBallPath.Destination.x);
     }
 
+    /// <summary>
+    /// Timer for the global events clock
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void GlobalTimer_Elapsed(object sender, ElapsedEventArgs e)
     {
         globalClockString = e.SignalTime.ToLongTimeString() + " +" + e.SignalTime.Millisecond; ;
     }
 
+    /// <summary>
+    /// Timer set to 6 min and counting the seconds of the exp trial
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void ClockTimer_Elapsed(object sender, ElapsedEventArgs e)
     {
         TimeSpan diff = e.SignalTime - startTime;
@@ -410,6 +444,7 @@ public class ExpManager : MonoBehaviour
             clockTimer.Start();
             startTime = DateTime.Now;
             StartNextBall(HitRes.hitNotPastHalf); //Starting game, params don't matter here.
+            ResetGamePoints();
         }
     }
 
@@ -499,6 +534,11 @@ public class ExpManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Announces the ball postion when a new ball is created
+    /// </summary>
+    /// <param name="hintLength"></param>
+    /// <returns></returns>
     private IEnumerator AnnounceBallPos(HintLength hintLength)
     {
         if(hintLength == HintLength.full)
@@ -570,6 +610,9 @@ public class ExpManager : MonoBehaviour
         else { yield break; }
     }
 
+    /// <summary>
+    /// Sets up aduio files for full hints that are spatialized
+    /// </summary>
     private void SetupFullHintAudio()
     {
         if(oldHintLen != HintLength.full)
@@ -591,6 +634,9 @@ public class ExpManager : MonoBehaviour
         oldHintLen = HintLength.full;
     }
 
+    /// <summary>
+    /// Sets up audio file for quicker and shorter hints that are spatialized
+    /// </summary>
     private void SetupShortLenHintAudio()
     {
         if (oldHintLen != HintLength.shortLen)
@@ -612,6 +658,9 @@ public class ExpManager : MonoBehaviour
         oldHintLen = HintLength.shortLen;
     }
 
+    /// <summary>
+    /// Sets up audio files for quicker shorter hints that are NOT spatialized
+    /// </summary>
     private void SetupNonSpatialHintAudio()
     {
         if (oldHintLen != HintLength.nonspatial)
@@ -630,6 +679,10 @@ public class ExpManager : MonoBehaviour
         oldHintLen = HintLength.nonspatial;
     }
 
+    /// <summary>
+    /// Sets the ball speed per ball
+    /// </summary>
+    /// <returns></returns>
     private int DetermineCurrBallSpeed()
     {
         if (ballSpeedDropdown.value == 0) //Dynamic
@@ -899,6 +952,12 @@ public class ExpManager : MonoBehaviour
         yield return NextBallComing();
     }
 
+    /// <summary>
+    /// Plays audio for a correction hint based on a hit result of the last ball
+    /// This is a Coroutine menthod and by nature is async
+    /// </summary>
+    /// <param name="hitRes">The results of the last ball</param>
+    /// <returns></returns>
     private IEnumerator ReadHitCorrection(HitRes hitRes)
     {
         var snapShotBatPos = endSnapshot.batPos;
@@ -1176,14 +1235,33 @@ public class ExpManager : MonoBehaviour
         prevHits = new int[6] { 0, 0, 0, 0, 0, 0 };
         expResults.Clear();
         past6Min = false;
+        ResetGamePoints();
     }
 
+    /// <summary>
+    /// Resets the game points for the game.
+    /// This method is called a fwe times just to be safe
+    /// </summary>
+    private void ResetGamePoints()
+    {
+        gamePoints = 0;
+        playerLevel = 0;
+        newBallOk = true;
+        prevHits = new int[6] { 0, 0, 0, 0, 0, 0 };
+        expResults.Clear();
+        past6Min = false;
+    }
+
+    /// <summary>
+    /// Plays audio on how many points the player has.
+    /// This is a Coroutine menthod and by nature is async
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator ReadGamePoints()
     {
         numberSpeech.PlayExpPointsAudio(gamePoints);
         yield return new WaitForSeconds(1.5f); //Wait arbiturary time till audio ends
     }
-
 }
 
 /// <summary>

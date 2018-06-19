@@ -139,45 +139,13 @@ public class SinglePManager : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        ////Check ball state
-        //if (!gameInit)
-        //{
-        //    //Debug ONLY
-        //    //GameUtils.playState = GameUtils.GamePlayState.InPlay;
-        //    //END DEBUG
-        //    GameUtils.playState = GameUtils.GamePlayState.Menu;
-        //    return;
-        //}
-
-        //if (!calibrated && JoyconController.ButtonPressed)
-        //{
-        //    TableEdge = BodySourceView.baseKinectPosition.Z;
-        //    CenterX = BodySourceView.baseKinectPosition.X;
-        //    calibrated = true;
-        //    return;
-        //}
-
-        //if (calibrated && !calibratedWait && !JoyconController.ButtonPressed)
-        //{
-        //    calibratedWait = true;
-        //    StartCoroutine(ReadInitServe());
-        //    return;
-        //}
-
-        //if (calibratedWait && JoyconController.ButtonPressed)
-        //{
-        //    GameUtils.playState = GameUtils.GamePlayState.SettingBall;
-        //    Time.timeScale = 1;
-        //    BallScript.GameInit = false;
-        //    ballSound.mute = false;
-        //    batSound.mute = false;
-        //    gameInit = false;
-        //}
-
         KeyBoardMenuControl();
         CheckAndPlayAudio();
     }
 
+    /// <summary>
+    /// Controls that cycles through the single player menu based on keyboard presses
+    /// </summary>
     private void KeyBoardMenuControl()
     {
         if (Input.GetKeyUp(KeyCode.UpArrow))
@@ -194,6 +162,10 @@ public class SinglePManager : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Gets all the child game objects of this gameobject, which is buttons and audioSources.
+    /// These are then broken out so click listeners can be added.
+    /// </summary>
     private void SetupChildComponents()
     {
         //Main Menu
@@ -274,6 +246,9 @@ public class SinglePManager : MonoBehaviour {
         diffAudioList = new List<AudioSource>() { easyAudio, mediumAudio, hardAudio, backAudio };
     }
 
+    /// <summary>
+    /// Difficulty menu click listeners
+    /// </summary>
     private void SetupDiffClick()
     {
         diffBack.onClick.AddListener(() =>
@@ -301,6 +276,9 @@ public class SinglePManager : MonoBehaviour {
         });
     }
 
+    /// <summary>
+    /// Settings menu click listeners
+    /// </summary>
     private void SetupSettingsMenuClick()
     {
         changeDifficultButton.onClick.AddListener(() => {
@@ -328,6 +306,9 @@ public class SinglePManager : MonoBehaviour {
         });
     }
 
+    /// <summary>
+    /// Main menu click listeners
+    /// </summary>
     private void SetupMainMenuClick()
     {
         singlePlayerButton.onClick.AddListener(() =>
@@ -347,6 +328,9 @@ public class SinglePManager : MonoBehaviour {
         });
     }
 
+    /// <summary>
+    /// Starts the game and closes the menu
+    /// </summary>
     private void StartGame()
     {
         StartCoroutine(ReadInitServe());
@@ -358,6 +342,9 @@ public class SinglePManager : MonoBehaviour {
         GoalScript.gameOver = false;
     }
 
+    /// <summary>
+    /// Hand menu click listeners
+    /// </summary>
     private void SetupHandClick()
     {
         leftHandButton.onClick.AddListener(() =>
@@ -396,6 +383,9 @@ public class SinglePManager : MonoBehaviour {
         });
     }
 
+    /// <summary>
+    /// Calibration button menu click listeners
+    /// </summary>
     private void SetupCalibClick()
     {
         calibrateButton.onClick.AddListener(() =>
@@ -418,15 +408,20 @@ public class SinglePManager : MonoBehaviour {
             }
         });
     }
-
+    
+    /// <summary>
+    /// Helper to calibrate the game with the Kinect.
+    /// </summary>
     private void CalibrateGame()
     {
         PaddleScript.TableEdge = BodySourceView.baseKinectPosition.Z;
         PaddleScript.CenterX = BodySourceView.baseKinectPosition.X;
-        //nowCalibAudio.Play();
         AddAudioToPlayingList(nowCalibAudio);
     }
 
+    /// <summary>
+    /// Sets the main menu gameobject/UI active
+    /// </summary>
     private void SetMainMenu()
     {
         mainMenuGO.SetActive(true);
@@ -437,6 +432,9 @@ public class SinglePManager : MonoBehaviour {
         ToggleTopButton();
     }
 
+    /// <summary>
+    /// Sets the calibration gameobject/UI active
+    /// </summary>
     private void SetCalibMenu()
     {
         calibrateMenuGO.SetActive(true);
@@ -455,6 +453,9 @@ public class SinglePManager : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Sets the difficulty gameobject/UI active
+    /// </summary>
     private void SetDiffMenu()
     {
         diffucultMenuGO.SetActive(true);
@@ -465,6 +466,9 @@ public class SinglePManager : MonoBehaviour {
         ToggleTopButton();
     }
 
+    /// <summary>
+    /// Sets the settings gameobject/UI active
+    /// </summary>
     private void SetSettingsMenu()
     {
         settingsMenuGO.SetActive(true);
@@ -475,6 +479,9 @@ public class SinglePManager : MonoBehaviour {
         ToggleTopButton();
     }
 
+    /// <summary>
+    /// Sets the change hand gameobject/UI active
+    /// </summary>
     private void SetHandMenu()
     {
         handMenuGO.SetActive(true);
@@ -492,7 +499,10 @@ public class SinglePManager : MonoBehaviour {
             handBackButton.gameObject.SetActive(true);
         }
     }
-
+    
+    /// <summary>
+    /// Toggles the top button in the menu active
+    /// </summary>
     private void ToggleTopButton()
     {
         var tempButton = currButtonList[currButtonIndex];
@@ -501,6 +511,10 @@ public class SinglePManager : MonoBehaviour {
         tempButton.colors = cb;
     }
 
+    /// <summary>
+    /// Changes the difficulty of the game
+    /// </summary>
+    /// <param name="diff"></param>
     private void ChangeDifficulty(int diff)
     {
         var str = "Difficulty: ";
@@ -518,7 +532,11 @@ public class SinglePManager : MonoBehaviour {
             diffText.text = str + "Hard";
         }
     }
-
+    
+    /// <summary>
+    /// Clicks the button in the menu. This is called from a keyboard button
+    /// press to click the menu button.
+    /// </summary>
     public void ClickSelectedButton()
     {
         var button = currButtonList[currButtonIndex];
@@ -531,7 +549,12 @@ public class SinglePManager : MonoBehaviour {
             AddAudioToPlayingList(currAudioList[currButtonIndex]);
         }
     }
-
+    
+    /// <summary>
+    /// Highlights the currently selected button in the menu. 
+    /// Also includes logic to cycle though the menus once the 
+    /// </summary>
+    /// <param name="upArrow"></param>
     public void ToggleHighlightedButton(bool upArrow)
     {
         int endOfList = gameInit ? currButtonList.Count - 1 : currButtonList.Count;
@@ -563,6 +586,10 @@ public class SinglePManager : MonoBehaviour {
         AddAudioToPlayingList(currAudioList[currButtonIndex]);
     }
 
+    /// <summary>
+    /// Changes the hand for the whole game.
+    /// </summary>
+    /// <param name="isLefty"></param>
     private void ChangeHand(bool isLefty)
     {
         var script = bodySourceViewGO.GetComponent<BodySourceView>();
@@ -573,23 +600,37 @@ public class SinglePManager : MonoBehaviour {
             handText.text = "Hand: Right";
     }
 
+    /// <summary>
+    /// Reads the first serve of the game
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator ReadInitServe()
     {
         AudioSource serveAudio = NumberSpeech.PlayAudio(GameUtils.PlayerServe ? "yourserve" : "oppserve");
         yield return new WaitForSeconds(serveAudio.clip.length);
     }
 
+    /// <summary>
+    /// Resets the game back to the single player menu
+    /// </summary>
     public static void ResetGameToMenu()
     {
         WholeMenuInstance.SetActive(true);
         GameUtils.playState = GameUtils.GamePlayState.Menu;
     }
 
+    /// <summary>
+    /// Adds an AudioSource to a queue to play for the accessible menu
+    /// </summary>
+    /// <param name="newAudio"></param>
     private void AddAudioToPlayingList(AudioSource newAudio)
     {
         playingAudioQueue.Enqueue(newAudio);
     }
 
+    /// <summary>
+    /// Plays audio if there is audio in the AudioSource queue
+    /// </summary>
     private void CheckAndPlayAudio()
     {
         if(playingAudioQueue.Count != 0)

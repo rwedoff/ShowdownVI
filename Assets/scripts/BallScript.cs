@@ -42,7 +42,8 @@ public class BallScript : MonoBehaviour
     }
 
     //Used for physics
-    //Game logic placed in here...bad idea.
+    //Game logic placed in here...bad idea, sorry.
+    //A todo item would be to move the game state stuff in a game manager script or something.
     private void FixedUpdate()
     {
         if (keyboardControl)
@@ -98,6 +99,9 @@ public class BallScript : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// Modifys the ball sound based on where the ball is and the speed of the ball
+    /// </summary>
     private void DynamicAudioChanges()
     {
         //Change and limit pitch change on ball
@@ -139,18 +143,28 @@ public class BallScript : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// State changes when the ball is set for a serve
+    /// </summary>
     public void BallSet()
     {
         ballSoundSource.pitch = 0.35f;
         StartBallSound();
     }
 
+    /// <summary>
+    /// Sets the state of the ball when the player is setting the ball for a serve.
+    /// </summary>
     public void SettingBall()
     {
         ballSoundSource.Pause();
         SetBall();
     }
 
+    /// <summary>
+    /// Method that checks if the ball is within the bounds of the table. If not, then reset the serve.
+    /// This is just a fail safe if the ball phases through the table or something.
+    /// </summary>
     private void CheckBallInGame()
     {
         if(rb.position.x < -51 || rb.position.x > 51 || rb.position.z < -130 || rb.position.z > 130)

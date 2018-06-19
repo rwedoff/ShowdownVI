@@ -16,6 +16,11 @@ public class CameraController : MonoBehaviour
         CameraDeltaZ = 0;
     }
 
+    /// <summary>
+    /// Moves the position/view of the camera based on where the head of the player is facing
+    /// The camera also follows the players body.
+    /// Lastly, it goes through a smoothing function because data is quite noisey
+    /// </summary>
     private void FixedUpdate()
     {
         CameraSpacePoint closestZPoint = BodySourceView.closestZPoint;

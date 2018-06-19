@@ -60,6 +60,9 @@ public class BatAI : MonoBehaviour {
 
     }
 
+    /// <summary>
+    /// Sends the AI bat back to the home position after hitting a ball
+    /// </summary>
     private void GoHome()
     {
         if(AIColliderScript.difficulty == 0)
@@ -99,14 +102,15 @@ public class BatAI : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Sends the AI bat to attempt to hit a ball
+    /// </summary>
     private void HitBall()
     {
         float ballX = hitPosition.x,
               ballZ = hitPosition.z;
-        //Debug.Log(ballX + " " + transform.position.x + " " +  ballZ + " " + transform.position.z);
         if (ballX != transform.position.x || ballZ != transform.position.z)
         {
-        //Debug.Log(ballZ + " " + transform.position.z);
             rb.position = Vector3.MoveTowards(transform.position,
                         new Vector3(ballX, transform.position.y, ballZ),
                         aiSpeed * Time.deltaTime);

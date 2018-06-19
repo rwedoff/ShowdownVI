@@ -174,6 +174,10 @@ public class GoalScript : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Reads out whose serve it is
+    /// </summary>
+    /// <returns></returns>
     private static IEnumerator PlayServeSound()
     {
         if (GameUtils.PlayerServe)
@@ -188,6 +192,9 @@ public class GoalScript : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Resets the game scores and switch the SinglePlayer menu.
+    /// </summary>
     private void ResetGame()
     {
         scoreText.text = INITSCORETEXT;
@@ -198,11 +205,17 @@ public class GoalScript : MonoBehaviour {
         SinglePManager.ResetGameToMenu();
     }
 
+    /// <summary>
+    /// Static helpers to play the win sound when a goal is scored.
+    /// </summary>
     internal static void PlayWinSound()
     {
         winPointAudio.Play();
     }
 
+    /// <summary>
+    /// Static helpers to play the lose sound
+    /// </summary>
     internal static void PlayLoseSound()
     {
         losePointAudio.Play();

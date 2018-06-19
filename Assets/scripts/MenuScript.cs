@@ -19,11 +19,15 @@ public class MenuScript : MonoBehaviour {
     public GameObject menuGameObject;
     public Button tactileAndAudioButton;
 
+    public static AudioSource clickAudioSource;
+    public static AudioSource hoverTempAudioSource;
+
     private List<Button> buttonList;
     private int buttonIndex;
 
     // Use this for initialization
     void Start () {
+        clickAudioSource = GetComponent<AudioSource>();
         calibrationGO.SetActive(false);
         mainMenuGO.SetActive(false);
 
@@ -72,6 +76,7 @@ public class MenuScript : MonoBehaviour {
             {
                 ExperimentLog.Log("Missing Participant ID", tag:"pre-menu");
                 Debug.LogWarning("Missing Participant ID");
+                GetComponents<AudioSource>()[1].Play();
             }
         });
 
@@ -86,6 +91,7 @@ public class MenuScript : MonoBehaviour {
             {
                 ExperimentLog.Log("Missing Participant ID", tag: "pre-menu");
                 Debug.LogWarning("Missing Participant ID");
+                GetComponents<AudioSource>()[1].Play();
             }
         });
 
