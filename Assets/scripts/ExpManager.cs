@@ -824,6 +824,7 @@ public class ExpManager : MonoBehaviour
                 newBallOk = false;
                 clockTimer.Stop();
                 ResetExp();
+                MenuScript.SetMainSelectableAndAudio();
                 break;
 
             // Cancel.
@@ -838,6 +839,7 @@ public class ExpManager : MonoBehaviour
                 clockTimer.Stop();
                 newBallOk = false;
                 ResetExp();
+                MenuScript.SetMainSelectableAndAudio();
                 break;
 
             default:
